@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.summary = "scalient-rails is a collection Ruby on Rails constructs specifically targeted for Scalient apps"
   s.description = "scalient-rails is a collection Ruby on Rails constructs specifically targeted for Scalient apps." \
     " With it, our aim is to deduplicate code and encourage use of a core set of tools."
+  s.add_runtime_dependency "devise", [">= 3.2.1"]
   s.add_runtime_dependency "ember-rails", [">= 0.14.0"]
   s.add_runtime_dependency "rails", [">= 4.0.1"]
   s.files = (Pathname.glob("{lib,vendor}/**/*.rb") + Pathname.glob("bin/*")).map { |f| f.to_s }
