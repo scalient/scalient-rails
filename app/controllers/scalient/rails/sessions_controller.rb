@@ -26,12 +26,11 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
   # Signs in to Devise scope, with special JSON handling added by us.
   def create
-    json_resource_name = nil
+    json_resource_name = controller_name.singularize
 
     respond_to do |format|
       # Remap the session information to the Devise scope name, which will be picked up on for authentication purposes.
       format.json do
-        json_resource_name = controller_name.singularize
         request.params[resource_name] = request.params[json_resource_name]
         request.params.delete(json_resource_name)
       end
@@ -44,6 +43,27 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     yield resource if block_given?
 
     respond_with(resource, :location => after_sign_in_path_for(resource)) do |format|
+      # Respond with the new CSRF token.
+      format.json do
+        render json: {json_resource_name => {"id" => 0, "csrf_token" => form_authenticity_token}}
+      end
+    end
+  end
+
+  # Signs out of the Devise scope, with special JSON handling added by us.
+  def destroy
+    json_resource_name = controller_name.singularize
+
+    # Copied from Devise::SessionsController.
+    redirect_path = after_sign_out_path_for(resource_name)
+    signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
+    set_flash_message :notice, :signed_out if signed_out && is_flashing_format?
+    yield resource if block_given?
+
+    respond_to do |format|
+      format.all { head :no_content }
+      format.any(*navigational_formats) { redirect_to redirect_path }
+
       # Respond with the new CSRF token.
       format.json do
         render json: {json_resource_name => {"id" => 0, "csrf_token" => form_authenticity_token}}
