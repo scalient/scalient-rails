@@ -34,19 +34,26 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
         request.params[resource_name] = request.params[json_resource_name]
         request.params.delete(json_resource_name)
       end
+
+      format.all {}
     end
 
     # Copied from Devise::SessionsController.
     self.resource = warden.authenticate!(auth_options)
     set_flash_message(:notice, :signed_in) if is_flashing_format?
+    redirect_path = after_sign_in_path_for(resource_name)
     sign_in(resource_name, resource)
     yield resource if block_given?
 
-    respond_with(resource, :location => after_sign_in_path_for(resource)) do |format|
+    respond_to do |format|
+      format.any(*navigational_formats) { redirect_to redirect_path }
+
       # Respond with the new CSRF token.
       format.json do
         render json: {json_resource_name => {"id" => 0, "csrf_token" => form_authenticity_token}}
       end
+
+      format.all { head :no_content }
     end
   end
 
@@ -61,13 +68,14 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     yield resource if block_given?
 
     respond_to do |format|
-      format.all { head :no_content }
       format.any(*navigational_formats) { redirect_to redirect_path }
 
       # Respond with the new CSRF token.
       format.json do
         render json: {json_resource_name => {"id" => 0, "csrf_token" => form_authenticity_token}}
       end
+
+      format.all { head :no_content }
     end
   end
 end
