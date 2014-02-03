@@ -33,7 +33,9 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
 
     @join_table = Arel::Table.new(join_table_name)
     @association_name = @join_table.name.singularize.to_sym
-    @join_columns = const_get("::#{@association_name.to_s.camelize}").column_names - column_names
+
+    join_model = const_get("::#{@association_name.to_s.camelize}")
+    @join_columns = join_model.table_exists? ? join_model.column_names - column_names : []
 
     belongs_to @association_name
   end
