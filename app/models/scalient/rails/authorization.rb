@@ -15,10 +15,6 @@
 # the License.
 
 class Scalient::Rails::Authorization < ActiveRecord::Base
-  class << self
-    attr_reader :scope_name
-  end
-
   # We want the table to be named "authorizations".
   self.table_name = self.name.demodulize.underscore.pluralize
 
@@ -32,19 +28,14 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
   # Specifies the user entity join table name.
   #
   # @param join_table_name [Symbol] the user entity join table name.
-  def self.joins(join_table_name = :users)
+  def self.joins(join_table_name)
     join_table_name = join_table_name.to_sym
 
     @join_table = Arel::Table.new(join_table_name)
+    @association_name = @join_table.name.singularize.to_sym
+    @join_columns = const_get("::#{@association_name.to_s.camelize}").column_names - column_names
 
-    belongs_to join_table_name.to_s.singularize.to_sym
-  end
-
-  # Specifies the Devise scope that this class is an authorization for.
-  #
-  # @param scope_name [String] the Devise scope name.
-  def self.authentication_scope(scope_name = "user")
-    @scope_name = scope_name.to_s
+    belongs_to @association_name
   end
 
   # Overrides Devise's default behavior and attempts to join the user entity table.
@@ -52,15 +43,13 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
     table = arel_table
     join_table = @join_table
 
-    association_name = reflections[join_table.name.singularize.to_sym].foreign_key.to_sym
-
     query = table.project(table[Arel.star])
 
-    conditions.each_key do |column_name|
+    @join_columns.each do |column_name|
       query.project(join_table[column_name]).as(column_name.to_s)
     end
 
-    query.join(join_table).on(table[association_name].eq join_table[:id])
+    query.join(join_table).on(table[reflections[@association_name].foreign_key].eq join_table[:id])
 
     conditions.each_pair do |column_name, value|
       query.where(join_table[column_name].eq value)
@@ -71,12 +60,12 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
 
   # Sets default values for some columns if they haven't been provided.
   def default_values
-    self.scope ||= self.class.scope_name || self.class.name.underscore.gsub("/", "_")
+    self.class_name ||= self.class.name
   end
 
   # Wrap the mixed in Devise method with one that additionally checks whether the role equals the scope/resource name.
   def active_for_authentication?
-    super && (scope == self.class.scope_name || scope == self.class.name.underscore.gsub("/", "_"))
+    super && class_name == self.class.name
   end
 
   # The email isn't required, because it resides in the joined user entity.
