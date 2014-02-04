@@ -34,7 +34,7 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
     @join_table = Arel::Table.new(join_table_name)
     @association_name = @join_table.name.singularize.to_sym
 
-    join_model = const_get("::#{@association_name.to_s.camelize}")
+    join_model = const_get(@association_name.to_s.camelize)
     @join_columns = join_model.table_exists? ? join_model.column_names - column_names : []
 
     belongs_to @association_name
@@ -57,17 +57,14 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
       query.where(join_table[column_name].eq value)
     end
 
+    query.where(table[:class_name].eq name)
+
     find_by_sql(query).first
   end
 
   # Sets default values for some columns if they haven't been provided.
   def default_values
     self.class_name ||= self.class.name
-  end
-
-  # Wrap the mixed in Devise method with one that additionally checks whether the role equals the scope/resource name.
-  def active_for_authentication?
-    super && class_name == self.class.name
   end
 
   # The email isn't required, because it resides in the joined user entity.
