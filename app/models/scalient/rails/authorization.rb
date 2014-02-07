@@ -22,9 +22,6 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
   devise :database_authenticatable, :rememberable, # These are authentication related.
          :recoverable, :registerable, :trackable, :validatable
 
-  # Set some default values if the record is saved.
-  before_save :default_values
-
   # Specifies the user entity join table name.
   #
   # @param join_table_name [Symbol] the user entity join table name.
@@ -57,14 +54,9 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
       query.where(join_table[column_name].eq value)
     end
 
-    query.where(table[:class_name].eq name)
+    query.where(table[:type].eq name)
 
     find_by_sql(query).first
-  end
-
-  # Sets default values for some columns if they haven't been provided.
-  def default_values
-    self.class_name ||= self.class.name
   end
 
   # The email isn't required, because it resides in the joined user entity.
