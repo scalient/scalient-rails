@@ -9,6 +9,13 @@
 
   app.ApplicationSerializer = DS.ActiveModelSerializer
 
+  app.reopen
+    csrfToken: null
+
+    csrfTokenChanged: (->
+      Ember.$("meta[name=\"csrf-token\"]").attr("content", @get("csrfToken"))
+    ).observes("csrfToken")
+
   Ember.$ ->
     app.set("csrfToken", Ember.$("meta[name=\"csrf-token\"]").attr("content"))
 
