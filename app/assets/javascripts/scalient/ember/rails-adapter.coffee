@@ -1,23 +1,19 @@
 ((factory) ->
   if typeof define is "function" and define.amd?
     define ["ember",
-            "./application-base"], factory
+            "./application-base",
+            "./mixins/csrf_mixin"], factory
 ).call(@, (Ember, #
-           app) ->
+           app, #
+           CsrfMixin) ->
   app.ApplicationAdapter = DS.ActiveModelAdapter.extend
     namespace: "api"
 
   app.ApplicationSerializer = DS.ActiveModelSerializer
 
-  app.reopen
-    csrfToken: null
-
-    csrfTokenChanged: (->
-      Ember.$("meta[name=\"csrf-token\"]").attr("content", @get("csrfToken"))
-    ).observes("csrfToken")
-
   Ember.$ ->
     app.set("csrfToken", Ember.$("meta[name=\"csrf-token\"]").attr("content"))
+    app.reopen(CsrfMixin)
 
     Ember.$.ajaxPrefilter (options, originalOptions, xhr) ->
       xhr.setRequestHeader("X-CSRF-Token", app.get("csrfToken"))

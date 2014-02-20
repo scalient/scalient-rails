@@ -3,8 +3,6 @@
     define ["ember"], factory
 ).call(@, (Ember) ->
   AuthorizableMixin = Ember.Mixin.create
-    authorizeRedirect: null
-
     authorize: (modelPromise) ->
       thisRoute = @
 
