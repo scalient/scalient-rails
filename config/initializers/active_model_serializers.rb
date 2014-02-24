@@ -30,7 +30,17 @@ module ActiveModel
         if included_associations.include? name
           if association.embed_in_root?
             association_serializer = build_serializer(association)
-            hash.merge! association_serializer.embedded_in_root_associations
+
+            # Two associations could share the same root key.
+            hash.merge! association_serializer.embedded_in_root_associations do |_, lhs, rhs|
+              if lhs.is_a?(Array) && rhs.is_a?(Array)
+                merged = lhs + rhs
+                merged.uniq!
+                merged
+              else
+                rhs
+              end
+            end
 
             serialized_data = association_serializer.serializable_object
 
