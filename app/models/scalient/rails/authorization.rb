@@ -15,12 +15,14 @@
 # the License.
 
 class Scalient::Rails::Authorization < ActiveRecord::Base
+  extend Forwardable
+
   # We want the table to be named "authorizations".
   self.table_name = self.name.demodulize.underscore.pluralize
 
   # Include default Devise modules.
   devise :database_authenticatable, :rememberable, # These are authentication related.
-         :recoverable, :registerable, :trackable, :validatable
+         :trackable
 
   # Specifies the user entity join table name.
   #
@@ -31,41 +33,22 @@ class Scalient::Rails::Authorization < ActiveRecord::Base
     @join_table = Arel::Table.new(join_table_name)
     @association_name = @join_table.name.singularize.to_sym
 
-    join_model = const_get(@association_name.to_s.camelize)
-    @join_columns = join_model.table_exists? ? join_model.column_names - column_names : []
-
     belongs_to @association_name
+
+    # Forward these password-related invocations to the joined user entity.
+    def_delegators @association_name, :after_database_authentication, :authenticatable_salt, :valid_password?
   end
 
   # Overrides Devise's default behavior and attempts to join the user entity table.
   def self.find_first_by_auth_conditions(conditions)
-    table = arel_table
-    join_table = @join_table
-
-    query = table.project(table[Arel.star])
-
-    @join_columns.each do |column_name|
-      query.project(join_table[column_name]).as(column_name.to_s)
-    end
-
-    query.join(join_table).on(table[reflections[@association_name].foreign_key].eq join_table[:id])
+    query = includes(@association_name)
 
     conditions.each_pair do |column_name, value|
-      query.where(join_table[column_name].eq value)
+      query = query.where(@join_table[column_name].eq value)
     end
 
-    query.where(table[:type].eq name)
+    query = query.references(@association_name)
 
-    find_by_sql(query).first
-  end
-
-  # The email isn't required, because it resides in the joined user entity.
-  def email_required?
-    false
-  end
-
-  # The email can't change, because it resides in the joined user entity.
-  def email_changed?
-    false
+    query.first
   end
 end
