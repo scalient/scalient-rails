@@ -1,0 +1,24 @@
+/**
+ * Copyright 2014 Scalient LLC
+ * All rights reserved.
+ *
+ * Contains styling for a sticky footer is always pushed to the bottom of the viewport.
+ */
+@import "twitter/bootstrap/variables";
+
+@sticky-footer-height: 50px;
+
+#wrap {
+  min-height: 100%;
+  height: auto !important;
+  height: 100%;
+  margin: 0px auto -@sticky-footer-height auto;
+}
+
+#push {
+  height: @sticky-footer-height;
+}
+
+#footer {
+  height: @sticky-footer-height;
+}

@@ -1,0 +1,36 @@
+/**
+ * Copyright 2014 Scalient LLC
+ * All rights reserved.
+ *
+ * Contains fixes for various Bootstrap CSS classes so that they work properly with Ember.js.
+ */
+@import "twitter/bootstrap/mixins";
+@import "twitter/bootstrap/variables";
+
+.ember.btn-group-vertical {
+  > .btn {
+    &:not(:first-child):not(:last-child) {
+      border-radius: @border-radius-base;
+    }
+
+    &:not(:first-of-type):not(:last-of-type) {
+      border-radius: 0;
+    }
+
+    &:first-of-type:not(:last-of-type) {
+      .border-top-radius(@border-radius-base);
+      .border-bottom-radius(0);
+    }
+
+    &:last-of-type:not(:first-of-type) {
+      .border-top-radius(0);
+      .border-bottom-radius(@border-radius-base);
+    }
+  }
+
+  // Handle metamorph script tags.
+  > .btn + script + script + .btn {
+    margin-top: -1px;
+    margin-left: 0;
+  }
+}
