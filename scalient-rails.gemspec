@@ -22,7 +22,10 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency "devise", [">= 3.2.4"]
   s.add_runtime_dependency "ember-rails", [">= 0.14.1"]
   s.add_runtime_dependency "rails", [">= 4.1.0"]
-  s.files = (Pathname.glob("{app,config,lib,vendor}/**/*.rb") + Pathname.glob("bin/*")).map { |f| f.to_s }
+  s.files = (Pathname.glob("{app,config,lib,vendor}/**/*.rb") \
+    + Pathname.glob("lib/tasks/**/*.rake") \
+    + Pathname.glob("bin/*") \
+  ).map { |f| f.to_s }
   s.test_files = Pathname.glob("{features,spec}/*").map { |f| f.to_s }
   s.executables = Pathname.glob("bin/*").map { |f| f.basename.to_s }
   s.require_paths = ["lib"]
