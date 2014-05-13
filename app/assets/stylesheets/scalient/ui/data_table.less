@@ -1,0 +1,125 @@
+/**
+ * Copyright 2014 Scalient LLC
+ * All rights reserved.
+ *
+ * Contains styling for a `div`-based (responsive) data table that collapses columns into rows on small enough screen
+ * sizes.
+ */
+@import "twitter/bootstrap/mixins";
+@import "twitter/bootstrap/variables";
+
+@data-table-background: @brand-info;
+@data-table-border-radius: 5px;
+@data-table-border-color: @data-table-background;
+@data-table-color: #fff;
+@data-table-breakpoint: @screen-sm-max;
+
+.data-table {
+  display: table;
+  width: 100%;
+}
+
+.data-table-header {
+  display: table-header-group;
+
+  > .data-cell {
+    background: @data-table-background;
+    color: @data-table-color;
+    border-right: 1px solid @data-table-border-color;
+    border-bottom: 1px solid @data-table-border-color;
+
+    &:first-child {
+      border-top-left-radius: @data-table-border-radius;
+      border-left: 1px solid @data-table-border-color;
+    }
+
+    &:last-child {
+      border-top-right-radius: @data-table-border-radius;
+    }
+  }
+}
+
+.data-table-footer {
+  display: table-footer-group;
+
+  > .data-cell {
+    background: @data-table-background;
+    color: @data-table-color;
+    border-right: 1px solid @data-table-border-color;
+    border-bottom: 1px solid @data-table-border-color;
+
+    &:first-child {
+      border-bottom-left-radius: @data-table-border-radius;
+      border-left: 1px solid @data-table-border-color;
+    }
+
+    &:last-child {
+      border-bottom-right-radius: @data-table-border-radius;
+    }
+  }
+}
+
+.data-row {
+  display: table-row;
+
+  > .data-cell {
+    &:first-child {
+      border-left: 1px solid @data-table-border-color;
+    }
+  }
+}
+
+.data-cell {
+  display: table-cell;
+  padding: 5px 5px 5px 5px;
+  border-right: 1px solid @data-table-border-color;
+  border-bottom: 1px solid @data-table-border-color;
+  word-wrap: break-word;
+}
+
+@media (max-width: @data-table-breakpoint) {
+  .data-table,
+  .data-table-header,
+  .data-table-footer,
+  .data-row,
+  .data-cell {
+    // Display columns row by row.
+    display: block;
+  }
+
+  .data-table-header,
+  .data-table-footer {
+    // Hide elements that are no longer needed.
+    display: none;
+  }
+
+  .data-row {
+    margin-bottom: 20px;
+  }
+
+  .data-cell {
+    position: relative;
+    padding-left: 50%;
+    border-left: 1px solid @data-table-border-color;
+
+    &:before {
+      position: absolute;
+      left: 10px;
+      padding-right: 10px;
+      width: 50%;
+      font-weight: bold;
+      content: attr(data-label);
+    }
+
+    &:first-child {
+      border-top-left-radius: @data-table-border-radius;
+      border-top-right-radius: @data-table-border-radius;
+      border-top: 1px solid @data-table-border-color;
+    }
+
+    &:last-child {
+      border-bottom-left-radius: @data-table-border-radius;
+      border-bottom-right-radius: @data-table-border-radius;
+    }
+  }
+}
