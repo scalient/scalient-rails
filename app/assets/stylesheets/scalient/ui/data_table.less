@@ -12,7 +12,7 @@
 @data-table-border-radius: 5px;
 @data-table-border-color: @data-table-background;
 @data-table-color: #fff;
-@data-table-breakpoint: @screen-sm-max;
+@data-table-breakpoint-max: @screen-sm-max;
 
 .data-table {
   display: table;
@@ -77,7 +77,7 @@
   word-wrap: break-word;
 }
 
-@media (max-width: @data-table-breakpoint) {
+@media (max-width: @data-table-breakpoint-max) {
   .data-table,
   .data-table-header,
   .data-table-footer,

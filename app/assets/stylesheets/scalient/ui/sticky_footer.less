@@ -4,21 +4,24 @@
  *
  * Contains styling for a sticky footer is always pushed to the bottom of the viewport.
  */
-@import "twitter/bootstrap/variables";
 
 @sticky-footer-height: 50px;
 
-#wrap {
-  min-height: 100%;
-  height: auto !important;
-  height: 100%;
-  margin: 0px auto -@sticky-footer-height auto;
+.sticky-footer(@prefix: sticky, @height: @sticky-footer-height) {
+  .@{prefix}-wrap {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0px auto -@height auto;
+
+    > .@{prefix}-push {
+      height: @height;
+    }
+  }
+
+  .@{prefix}-footer {
+    height: @height;
+  }
 }
 
-#push {
-  height: @sticky-footer-height;
-}
-
-#footer {
-  height: @sticky-footer-height;
-}
+.sticky-footer();
