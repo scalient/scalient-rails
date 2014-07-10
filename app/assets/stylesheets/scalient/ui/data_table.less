@@ -8,10 +8,11 @@
 @import "twitter/bootstrap/mixins";
 @import "twitter/bootstrap/variables";
 
-@data-table-background: @brand-info;
-@data-table-border-radius: 5px;
-@data-table-border-color: @data-table-background;
-@data-table-color: #fff;
+@data-table-bg: @table-bg;
+@data-table-bg-accent: @table-bg-accent;
+@data-table-border-radius: 0px;
+@data-table-border-color: @table-border-color;
+@data-table-cell-padding: @table-cell-padding;
 @data-table-breakpoint-max: @screen-sm-max;
 
 .data-table {
@@ -19,14 +20,15 @@
   width: 100%;
 }
 
-.data-table-header {
+.data-header {
   display: table-header-group;
 
   > .data-cell {
-    background: @data-table-background;
-    color: @data-table-color;
+    background: @data-table-bg;
     border-right: 1px solid @data-table-border-color;
+    border-top: 1px solid @data-table-border-color;
     border-bottom: 1px solid @data-table-border-color;
+    font-weight: bold;
 
     &:first-child {
       border-top-left-radius: @data-table-border-radius;
@@ -39,14 +41,14 @@
   }
 }
 
-.data-table-footer {
+.data-footer {
   display: table-footer-group;
 
   > .data-cell {
-    background: @data-table-background;
-    color: @data-table-color;
+    background: @data-table-bg;
     border-right: 1px solid @data-table-border-color;
     border-bottom: 1px solid @data-table-border-color;
+    font-weight: bold;
 
     &:first-child {
       border-bottom-left-radius: @data-table-border-radius;
@@ -57,6 +59,10 @@
       border-bottom-right-radius: @data-table-border-radius;
     }
   }
+}
+
+.data-body {
+  display: table-row-group;
 }
 
 .data-row {
@@ -71,24 +77,33 @@
 
 .data-cell {
   display: table-cell;
-  padding: 5px 5px 5px 5px;
+  padding: @data-table-cell-padding;
   border-right: 1px solid @data-table-border-color;
   border-bottom: 1px solid @data-table-border-color;
   word-wrap: break-word;
 }
 
+.data-table.data-striped {
+  > .data-body {
+    > .data-row:nth-child(odd) {
+      background-color: @table-bg-accent;
+    }
+  }
+}
+
 @media (max-width: @data-table-breakpoint-max) {
   .data-table,
-  .data-table-header,
-  .data-table-footer,
+  .data-header,
+  .data-footer,
+  .data-body,
   .data-row,
   .data-cell {
     // Display columns row by row.
     display: block;
   }
 
-  .data-table-header,
-  .data-table-footer {
+  .data-header,
+  .data-footer {
     // Hide elements that are no longer needed.
     display: none;
   }
