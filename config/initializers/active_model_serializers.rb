@@ -28,62 +28,41 @@ module ActiveModel
       included_associations = filter(associations.keys)
       associations.each_with_object({}) do |(name, association), hash|
         if included_associations.include? name
-          if association.embed_in_root?
-            association_serializer = build_serializer(association)
+          association_serializer = build_serializer(association)
 
-            # Two associations could share the same root key.
-            hash.merge! association_serializer.embedded_in_root_associations do |_, lhs, rhs|
-              if lhs.is_a?(Array) && rhs.is_a?(Array)
-                merged = lhs + rhs
-                merged.uniq!
-                merged
-              else
-                rhs
-              end
+          # Two associations could share the same root key.
+          hash.merge! association_serializer.embedded_in_root_associations do |_, lhs, rhs|
+            if lhs.is_a?(Array) && rhs.is_a?(Array)
+              merged = lhs + rhs
+              merged.uniq!
+              merged
+            else
+              rhs
+            end
+          end
+
+          if association.embed_in_root?
+            if association.embed_in_root_key?
+              hash = hash[association.embed_in_root_key] ||= {}
             end
 
             serialized_data = association_serializer.serializable_object
 
-            if !association.options[:polymorphic]
+            if !association.polymorphic?
               key = association.root_key
             else
-              id = object.send("#{association.name}_id")
-              key = !id.nil? ? object.send("#{association.name}_type").demodulize.underscore.pluralize : nil
+              key = object.send("#{association.name}_type").demodulize.underscore.pluralize
+              serialized_data = serialized_data.map { |data| data[data[:type]] }
             end
 
             if hash.has_key?(key)
               hash[key].concat(serialized_data).uniq!
             else
               hash[key] = serialized_data
-            end if !key.nil?
-          end
-        end
-      end
-    end
-
-    # Monkey patch to add support for polymorphism.
-    def associations
-      associations = self.class._associations
-      included_associations = filter(associations.keys)
-      associations.each_with_object({}) do |(name, association), hash|
-        if included_associations.include? name
-          if !association.options[:polymorphic]
-            if association.embed_ids?
-              hash[association.key] = serialize_ids association
-            elsif association.embed_objects?
-              hash[association.embedded_key] = serialize association
             end
-          else
-            hash[association.embedded_key] = serialize_polymorphic_id association
           end
         end
       end
-    end
-
-    # Serialize the polymorphic id as the tuple "(id, type)".
-    def serialize_polymorphic_id(association)
-      id = object.send("#{association.name}_id")
-      !id.nil? ? {id: id, type: object.send("#{association.name}_type").demodulize.underscore} : nil
     end
   end
 end

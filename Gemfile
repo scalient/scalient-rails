@@ -7,6 +7,3 @@ source "https://rubygems.org"
 
 # Resolve dependencies from the gemspec for development convenience.
 gemspec
-
-gem "redcarpet"
-gem "yard"
