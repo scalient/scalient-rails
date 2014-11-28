@@ -16,12 +16,34 @@
 
 require "active_model/serializer"
 
-ActiveModel::Serializer.setup do |config|
-  config.embed = :ids
-  config.embed_in_root = true
-end
-
 module ActiveModel
+  # Monkey patch polymorphism into `DefaultSerializer`.
+  class DefaultSerializer
+    def initialize(object, options={})
+      @object = object
+      @wrap_in_array = options[:_wrap_in_array]
+      @polymorphic = options[:polymorphic]
+    end
+
+    def serializable_object(options={})
+      instrument('!serialize') do
+        return [] if @object.nil? && @wrap_in_array
+        hash = @object.as_json
+
+        hash = {:type => type_name(@object), type_name(@object) => hash} \
+            if @polymorphic
+
+        @wrap_in_array ? [hash] : hash
+      end
+    end
+
+    private
+
+    def type_name(elem)
+      elem.class.to_s.demodulize.underscore.to_sym
+    end
+  end
+
   class Serializer
     # Add support for polymorphism.
     def embedded_in_root_associations
