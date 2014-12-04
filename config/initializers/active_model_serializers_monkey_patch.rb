@@ -31,7 +31,7 @@ module ActiveModel
         hash = @object.as_json
 
         hash = {:type => type_name(@object), type_name(@object) => hash} \
-            if @polymorphic
+          if @polymorphic && !@object.nil?
 
         @wrap_in_array ? [hash] : hash
       end
@@ -53,7 +53,7 @@ module ActiveModel
         if included_associations.include? name
           association_serializer = build_serializer(association)
           hash.merge!(association_serializer.embedded_in_root_associations) do |key, oldval, newval|
-            [newval, oldval].flatten.uniq!
+            [newval, oldval].flatten.uniq
           end
 
           if association.embed_in_root?
