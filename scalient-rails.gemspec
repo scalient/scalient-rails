@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013-2014 Scalient LLC
+# Copyright 2013-2015 Scalient LLC
 # All rights reserved.
 
 require "pathname"
@@ -19,9 +19,9 @@ Gem::Specification.new do |s|
   s.summary = "scalient-rails is a collection Ruby on Rails constructs specifically targeted for Scalient apps"
   s.description = "scalient-rails is a collection Ruby on Rails constructs specifically targeted for Scalient apps." \
     " With it, our aim is to deduplicate code and encourage use of a core set of tools."
-  s.add_runtime_dependency "devise", [">= 3.2.4"]
-  s.add_runtime_dependency "ember-rails", [">= 0.14.1"]
-  s.add_runtime_dependency "rails", [">= 4.1.0"]
+  s.add_runtime_dependency "devise", [">= 3.4.1"]
+  s.add_runtime_dependency "ember-rails", [">= 0.16.1"]
+  s.add_runtime_dependency "rails", [">= 4.2.0"]
   s.files = (Pathname.glob("{app,config,lib,vendor}/**/*.rb") \
     + Pathname.glob("lib/tasks/**/*.rake") \
     + Pathname.glob("bin/*") \
