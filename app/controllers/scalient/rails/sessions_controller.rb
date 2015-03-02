@@ -15,6 +15,12 @@
 # the License.
 
 class Scalient::Rails::SessionsController < Devise::SessionsController
+  class << self
+    include Scalient::Rails::DeviseHelper
+  end
+
+  inherit_devise_i18n_translations
+
   # The sign-in action doesn't need CSRF protection, which guards against hijacked cookies, and not against sign-ins
   # with usernames and passwords. In fact, in the case of session cookie expiration with JavaScript MVCs like Ember.js,
   # the user may be left in a permanent bind (short of a browser reload):
@@ -35,12 +41,14 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
       format.any(*navigational_formats) { render serialize_options(resource) }
 
       format.json do
-        render json: {
+        response = {
             json_resource_name => {
                 "id" => 0,
                 "message" => "JSON isn't supported for this action."
             }
         }
+
+        render json: response
       end
 
       format.all { head :no_content }
@@ -61,7 +69,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
       format.all {}
     end
 
-    # Copied from Devise::SessionsController.
+    # Copied from `Devise::SessionsController`.
     self.resource = warden.authenticate!(auth_options)
     set_flash_message(:notice, :signed_in) if is_flashing_format?
     redirect_path = after_sign_in_path_for(resource_name)
@@ -73,13 +81,15 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
       # Respond with the new CSRF token.
       format.json do
-        render json: {
+        response = {
             json_resource_name => {
                 "id" => 0,
                 "csrf_token" => form_authenticity_token,
                 "message" => find_message(:signed_in)
             }
         }
+
+        render json: response
       end
 
       format.all { head :no_content }
@@ -90,7 +100,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
   def destroy
     json_resource_name = controller_name.singularize
 
-    # Copied from Devise::SessionsController.
+    # Copied from `Devise::SessionsController`.
     redirect_path = after_sign_out_path_for(resource_name)
     signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
     set_flash_message(:notice, :signed_out) if signed_out && is_flashing_format?
@@ -101,13 +111,38 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
       # Respond with the new CSRF token.
       format.json do
-        render json: {
+        response = {
             json_resource_name => {
                 "id" => 0,
                 "csrf_token" => form_authenticity_token,
                 "message" => find_message(:signed_out)
             }
         }
+
+        render json: response
+      end
+
+      format.all { head :no_content }
+    end
+  end
+
+  # Gets the current session. Provided for RESTfulness.
+  def show
+    json_resource_name = controller_name.singularize
+
+    self.resource = resource_class.new
+
+    respond_to do |format|
+      format.json do
+        response = {
+            json_resource_name => {
+                "id" => 0,
+                "csrf_token" => form_authenticity_token,
+                "message" => "This is the current session."
+            }
+        }
+
+        render json: response
       end
 
       format.all { head :no_content }

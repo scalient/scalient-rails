@@ -3,7 +3,7 @@
     define ["ember"], factory
 ).call(@, (Ember) ->
   CsrfMixin = Ember.Mixin.create
-    csrfTokenChanged: (->
+    csrfTokenObserver: (->
       Ember.$("meta[name=\"csrf-token\"]").attr("content", @get("csrfToken"))
     ).observes("csrfToken")
 

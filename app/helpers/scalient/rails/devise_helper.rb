@@ -22,8 +22,11 @@ module Scalient
   module Rails
     module DeviseHelper
       module InstanceMethods
-        def copy_devise_superclass_i18n_translations
-          return \
+        # Inherits the Devise superclass' i18n translations under the `devise` namespace. For example, if `class
+        # UserSessionsController < Devise::SessionsController; end`, then `en.devise.user_sessions`
+        # will take on the values contained in `en.devise.sessions`.
+        def inherit_devise_i18n_translations
+          raise "The class `#{self.name}` must descend from `DeviseController` to inherit i18n translations" \
             if !ancestors.include?(DeviseController)
 
           Pathname.glob("#{Devise::Engine.root.to_s}/config/locales/*.yml").each do |locale_file|
