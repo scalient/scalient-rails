@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2013 Scalient LLC
+# Copyright 2015 Scalient LLC
 # All rights reserved.
+
+require "sprockets/rails"
+require "scalient/rails/helpers/application_helper"
+require "scalient/rails/helpers/sprockets_helper"
 
 module Scalient
   module Rails
     class Engine < ::Rails::Engine
-      isolate_namespace Scalient::Rails
+      isolate_namespace ::Scalient::Rails
     end
+
+    ::Rails::Application.send(:include, ApplicationHelper)
+    ::Sprockets::Environment.send(:include, SprocketsHelper)
   end
 end

@@ -7,7 +7,7 @@ require "active_support/concern"
 
 module Scalient
   module Rails
-    module ApplicationHelpers
+    module ApplicationHelper
       extend ActiveSupport::Concern
 
       included do
