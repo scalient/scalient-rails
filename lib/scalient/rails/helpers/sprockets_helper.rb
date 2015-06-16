@@ -11,8 +11,8 @@ module Scalient
       extend ActiveSupport::Concern
 
       included do
-        raise "Please mix this module into `Sprockets::Environment`" \
-          if self != Sprockets::Environment
+        raise "Please mix this module into `Sprockets::Environment` or `Sprockets::CachedEnvironment`" \
+          if self != Sprockets::Environment && self != Sprockets::CachedEnvironment
 
         def copy(context_values = {}, &block)
           app = ::Rails.application

@@ -15,5 +15,6 @@ module Scalient
 
     ::Rails::Application.send(:include, ApplicationHelper)
     ::Sprockets::Environment.send(:include, SprocketsHelper)
+    ::Sprockets::CachedEnvironment.send(:include, SprocketsHelper)
   end
 end
