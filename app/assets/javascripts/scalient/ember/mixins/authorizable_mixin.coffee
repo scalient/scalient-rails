@@ -25,7 +25,7 @@
       Ember.RSVP.resolve(model).then(
         null,
         ((e) ->
-          if e.status is 401
+          if e.errors[0].status is "401"
             route.transitionTo(route.get("authorizeRedirect"))
         )
       )
