@@ -5,7 +5,6 @@
 
 require "sprockets/rails"
 require "scalient/rails/helpers/application_helper"
-require "scalient/rails/helpers/sprockets_helper"
 
 module Scalient
   module Rails
@@ -14,7 +13,5 @@ module Scalient
     end
 
     ::Rails::Application.send(:include, ApplicationHelper)
-    ::Sprockets::Environment.send(:include, SprocketsHelper)
-    ::Sprockets::CachedEnvironment.send(:include, SprocketsHelper)
   end
 end

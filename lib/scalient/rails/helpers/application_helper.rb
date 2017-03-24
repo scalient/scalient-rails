@@ -36,6 +36,54 @@ module Scalient
 
           oo
         end
+
+        # Creates a copy of the assets environment for specialized compilation and templating operations.
+        #
+        # @param context_values [Hash] custom context values that will be made available to templates and such.
+        # @yield Configure the environment further.
+        #
+        # @return [Sprockets::Environment] a copy of the assets environment.
+        def copy_assets(context_values = {}, &block)
+          app = ::Rails.application
+
+          Sprockets::Environment.new(app.root.to_s) do |env|
+            env.version = ::Rails.env.to_s
+
+            env.context_class.class_eval do
+              # Import helpers from the `sprockets-rails` gem.
+              include Sprockets::Rails::Helper
+
+              metaclass = class << self
+                extend Forwardable
+
+                def_delegators :application, :assets_manifest
+
+                self
+              end
+
+              metaclass.send(:define_method, :application) { app }
+
+              # Expose user-defined context values as methods.
+              context_values.each_pair { |key, value| define_method(key.to_sym) { value } }
+            end
+
+            # Inherit the original environment's paths. These can be overridden with `clear_paths`.
+            app.config.assets.paths.each { |path| env.append_path(path) }
+
+            # Since this is mostly likely a single-use environment, we don't intend to cache anything.
+            env.cache = nil
+
+            # No CSS compression.
+            env.css_compressor = nil
+
+            # No JS compression.
+            env.js_compressor = nil
+
+            # Enable further customization by the user.
+            block.call(env) \
+              if block
+          end
+        end
       end
     end
   end
