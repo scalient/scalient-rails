@@ -39,35 +39,26 @@ module Scalient
 
         # Creates a copy of the assets environment for specialized compilation and templating operations.
         #
-        # @param context_values [Hash] custom context values that will be made available to templates and such.
         # @yield Configure the environment further.
         #
         # @return [Sprockets::Environment] a copy of the assets environment.
-        def copy_assets(context_values = {}, &block)
+        def copy_assets(&block)
           app = ::Rails.application
 
-          Sprockets::Environment.new(app.root.to_s) do |env|
+          ::Sprockets::Environment.new(app.root.to_s) do |env|
             env.version = ::Rails.env.to_s
 
             env.context_class.class_eval do
-              # Import helpers from the `sprockets-rails` gem.
-              include Sprockets::Rails::Helper
+              # Import some voodoo from Sprockets Rails. See
+              # `https://github.com/rails/sprockets-rails/blob/v3.2.0/lib/sprockets/railtie.rb#L132-L135`.
+              include ::Sprockets::Rails::Context
 
-              metaclass = class << self
-                extend Forwardable
-
-                def_delegators :application, :assets_manifest
-
-                self
-              end
-
-              metaclass.send(:define_method, :application) { app }
-
-              # Expose user-defined context values as methods.
-              context_values.each_pair { |key, value| define_method(key.to_sym) { value } }
+              self.assets_prefix = app.config.assets.prefix
+              self.digest_assets = app.config.assets.digest
+              self.config = app.config.action_controller
             end
 
-            # Inherit the original environment's paths. These can be overridden with `clear_paths`.
+            # Use the application configuration's search paths. These can be overridden with `clear_paths`.
             app.config.assets.paths.each { |path| env.append_path(path) }
 
             # Since this is mostly likely a single-use environment, we don't intend to cache anything.
