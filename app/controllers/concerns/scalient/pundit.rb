@@ -24,7 +24,9 @@ module Scalient
       rescue_from ::Pundit::NotAuthorizedError, with: :not_authorized
 
       def not_authorized
-        redirect_to request.referrer || root_path,
+        referrer = request.referrer
+
+        redirect_to referrer && URI(request.original_url) != URI(referrer) ? referrer : root_path,
                     alert: "You are not authorized to perform this action."
       end
     end
