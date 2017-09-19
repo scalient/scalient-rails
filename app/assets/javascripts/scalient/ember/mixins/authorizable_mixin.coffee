@@ -19,14 +19,16 @@
     define ["ember"], factory
 ).call(@, (Ember) ->
   AuthorizableMixin = Ember.Mixin.create
-    authorize: (model) ->
+    authorize: (model, queryParams = {}) ->
       route = @
 
       Ember.RSVP.resolve(model).then(
         null,
         ((e) ->
           if e.errors[0].status is "401"
-            route.transitionTo(route.get("authorizeRedirect"))
+# This is some black magic that's necessary to fix `https://github.com/emberjs/ember.js/issues/12169`.
+            route.router.router.activeTransition.abort()
+            route.transitionTo(route.get("authorizeRedirect"), queryParams: queryParams)
         )
       )
 
