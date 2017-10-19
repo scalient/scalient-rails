@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2014 Roy Liu
+# Copyright 2014-2017 Roy Liu
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -15,12 +15,6 @@
 # the License.
 
 class Scalient::Rails::SessionsController < Devise::SessionsController
-  class << self
-    include Scalient::Rails::DeviseHelper
-  end
-
-  inherit_devise_i18n_translations
-
   # The sign-in action doesn't need CSRF protection, which guards against hijacked cookies, and not against sign-ins
   # with usernames and passwords. In fact, in the case of session cookie expiration with JavaScript MVCs like Ember.js,
   # the user may be left in a permanent bind (short of a browser reload):
@@ -38,7 +32,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     clean_up_passwords(resource)
 
     respond_to do |format|
-      format.any(*navigational_formats) { render serialize_options(resource) }
+      format.any(*navigational_formats) {render serialize_options(resource)}
 
       format.json do
         response = {
@@ -51,7 +45,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
         render json: response
       end
 
-      format.all { head :no_content }
+      format.all {head :no_content}
     end
   end
 
@@ -77,7 +71,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     yield resource if block_given?
 
     respond_to do |format|
-      format.any(*navigational_formats) { redirect_to redirect_path }
+      format.any(*navigational_formats) {redirect_to redirect_path}
 
       # Respond with the new CSRF token.
       format.json do
@@ -92,7 +86,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
         render json: response
       end
 
-      format.all { head :no_content }
+      format.all {head :no_content}
     end
   end
 
@@ -107,7 +101,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     yield resource if block_given?
 
     respond_to do |format|
-      format.any(*navigational_formats) { redirect_to redirect_path }
+      format.any(*navigational_formats) {redirect_to redirect_path}
 
       # Respond with the new CSRF token.
       format.json do
@@ -122,7 +116,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
         render json: response
       end
 
-      format.all { head :no_content }
+      format.all {head :no_content}
     end
   end
 
@@ -145,7 +139,12 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
         render json: response
       end
 
-      format.all { head :no_content }
+      format.all {head :no_content}
     end
+  end
+
+  # Use the translations for `Devise::SessionsController`.
+  def translation_scope
+    "devise.sessions"
   end
 end
