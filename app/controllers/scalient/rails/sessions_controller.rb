@@ -102,20 +102,6 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
     respond_to do |format|
       format.any(*navigational_formats) {redirect_to redirect_path}
-
-      # Respond with the new CSRF token.
-      format.json do
-        response = {
-            json_resource_name => {
-                "id" => 0,
-                "csrf_token" => form_authenticity_token,
-                "message" => find_message(:signed_out)
-            }
-        }
-
-        render json: response
-      end
-
       format.all {head :no_content}
     end
   end
