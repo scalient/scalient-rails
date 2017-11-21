@@ -26,38 +26,25 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
   # Renders the Devise sign-in page.
   def new
-    json_resource_name = controller_name.singularize
-
     self.resource = resource_class.new
     clean_up_passwords(resource)
+    yield resource if block_given?
 
     respond_to do |format|
       format.any(*navigational_formats) {render serialize_options(resource)}
-
-      format.json do
-        response = {
-            json_resource_name => {
-                "id" => 0,
-                "message" => "JSON isn't supported for this action."
-            }
-        }
-
-        render json: response
-      end
-
       format.all {head :no_content}
     end
   end
 
   # Signs in to the Devise scope, with special JSON handling added by us.
   def create
-    json_resource_name = controller_name.singularize
+    session_resource_name = controller_name.singularize
 
     respond_to do |format|
       # Remap the session information to the Devise scope name, which will be picked up on for authentication purposes.
       format.json do
-        request.params[resource_name] = request.params[json_resource_name]
-        request.params.delete(json_resource_name)
+        request.params[resource_name] = request.params[session_resource_name]
+        request.params.delete(session_resource_name)
       end
 
       format.all {}
@@ -75,15 +62,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
       # Respond with the new CSRF token.
       format.json do
-        response = {
-            json_resource_name => {
-                "id" => 0,
-                "csrf_token" => form_authenticity_token,
-                "message" => find_message(:signed_in)
-            }
-        }
-
-        render json: response
+        render json: session_resource(0, find_message(:signed_in), resource)
       end
 
       format.all {head :no_content}
@@ -92,8 +71,6 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
   # Signs out of the Devise scope, with special JSON handling added by us.
   def destroy
-    json_resource_name = controller_name.singularize
-
     # Copied from `Devise::SessionsController`.
     redirect_path = after_sign_out_path_for(resource_name)
     signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
@@ -108,21 +85,11 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
   # Gets the current session. Provided for RESTfulness.
   def show
-    json_resource_name = controller_name.singularize
-
     self.resource = resource_class.new
 
     respond_to do |format|
       format.json do
-        response = {
-            json_resource_name => {
-                "id" => 0,
-                "csrf_token" => form_authenticity_token,
-                "message" => "This is the current session."
-            }
-        }
-
-        render json: response
+        render json: session_resource(0, "This is the current session.")
       end
 
       format.all {head :no_content}
@@ -132,5 +99,19 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
   # Use the translations for `Devise::SessionsController`.
   def translation_scope
     "devise.sessions"
+  end
+
+  private
+
+  # Attempts to retrieve the session resource to take advantage of serialization.
+  def session_resource(id, message, resource = nil)
+    model = controller_path.classify.safe_constantize
+
+    if model
+      model.new(id: id, message: message, resource_name => resource)
+    else
+      # Default to JSON if the session resource model isn't found.
+      {id: id, message: message, resource_name => resource.as_json}
+    end
   end
 end
