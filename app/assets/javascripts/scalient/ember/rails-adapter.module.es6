@@ -1,5 +1,5 @@
 import * as Ember from "ember";
-import * as DS from "ember-data";
+import * as DS from "scalient/ember/derequire!ember-data";
 import "active-model-adapter";
 import application from "./application-base";
 import CsrfMixin from "./mixins/csrf_mixin";
