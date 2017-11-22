@@ -43,8 +43,12 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     respond_to do |format|
       # Remap the session information to the Devise scope name, which will be picked up on for authentication purposes.
       format.json do
-        request.params[resource_name] = request.params[session_resource_name]
-        request.params.delete(session_resource_name)
+        begin
+          params[resource_name] = ActiveModelSerializers::Deserialization.jsonapi_parse(params)
+        rescue ActiveModelSerializers::Adapter::JsonApi::Deserialization::InvalidDocument
+          params[resource_name] = params[session_resource_name]
+          params.delete(session_resource_name)
+        end
       end
 
       format.all {}
