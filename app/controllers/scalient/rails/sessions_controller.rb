@@ -60,7 +60,6 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     respond_to do |format|
       format.any(*navigational_formats) {redirect_to redirect_path}
 
-      # Respond with the new CSRF token.
       format.json do
         render json: session_resource(0, find_message(:signed_in), resource)
       end
