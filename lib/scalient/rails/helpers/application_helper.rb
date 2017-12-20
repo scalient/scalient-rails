@@ -18,7 +18,7 @@ module Scalient
         # @return [ActiveSupport::OrderedOptions] the configuration values.
         def load_yaml(filename)
           file = Pathname.new(filename).expand_path(::Rails.root)
-          yaml_content = YAML.load(file.open { |f| f.read })
+          yaml_content = YAML.load(file.open {|f| f.read})
 
           raise ArgumentError, "Top-level YAML object must be a Hash" \
             if !yaml_content.is_a?(Hash) && !yaml_content.nil?
@@ -32,7 +32,7 @@ module Scalient
             config.send(:"#{method_name}=", oo)
           end
 
-          (yaml_content || {}).each_pair { |k, v| oo[k] = v }
+          (yaml_content || {}).each_pair {|k, v| oo[k] = v}
 
           oo
         end
@@ -59,10 +59,14 @@ module Scalient
             end
 
             # Use the application configuration's search paths. These can be overridden with `clear_paths`.
-            app.config.assets.paths.each { |path| env.append_path(path) }
+            app.config.assets.paths.each {|path| env.append_path(path)}
 
-            # Since this is mostly likely a single-use environment, we don't intend to cache anything.
-            env.cache = nil
+            # Create a cache in the same way sprockets-rails does.
+            env.cache = Sprockets::Cache::FileStore.new(
+                "#{env.root}/tmp/cache/assets",
+                app.config.assets.cache_limit,
+                env.logger
+            )
 
             # No CSS compression.
             env.css_compressor = nil
