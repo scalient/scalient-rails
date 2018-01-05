@@ -61,12 +61,8 @@ module Scalient
             # Use the application configuration's search paths. These can be overridden with `clear_paths`.
             app.config.assets.paths.each {|path| env.append_path(path)}
 
-            # Create a cache in the same way sprockets-rails does.
-            env.cache = Sprockets::Cache::FileStore.new(
-                "#{env.root}/tmp/cache/assets",
-                app.config.assets.cache_limit,
-                env.logger
-            )
+            # Since this is mostly likely a single-use environment, we don't intend to cache anything.
+            env.cache = nil
 
             # No CSS compression.
             env.css_compressor = nil
