@@ -21,7 +21,6 @@ Gem::Specification.new do |s|
     " With it, our aim is to deduplicate code and encourage use of a core set of tools."
   s.add_runtime_dependency "bootstrap-sass", [">= 3.3.5"]
   s.add_runtime_dependency "devise", [">= 3.4.1"]
-  s.add_runtime_dependency "ember-rails", [">= 0.16.1"]
   s.add_runtime_dependency "rails", [">= 4.2.0"]
   s.files = (Pathname.glob("{app,config,lib,vendor}/**/*.rb") \
     + Pathname.glob("lib/tasks/**/*.rake") \
