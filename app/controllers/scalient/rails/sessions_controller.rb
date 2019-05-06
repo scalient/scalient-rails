@@ -22,7 +22,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
   #   1. The user signs in successfully.
   #   2. Rails helpfully invalidates the new session cookie because the CSRF token was invalid.
   #   3. The user is forced to sign in again.
-  skip_before_filter :verify_authenticity_token, only: [:create]
+  skip_before_action :verify_authenticity_token, only: [:create]
 
   # Renders the Devise sign-in page.
   def new
@@ -31,8 +31,8 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     yield resource if block_given?
 
     respond_to do |format|
-      format.any(*navigational_formats) {render serialize_options(resource)}
-      format.all {head :no_content}
+      format.any(*navigational_formats) { render serialize_options(resource) }
+      format.all { head :no_content }
     end
   end
 
@@ -58,13 +58,13 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     yield resource if block_given?
 
     respond_to do |format|
-      format.any(*navigational_formats) {redirect_to redirect_path}
+      format.any(*navigational_formats) { redirect_to redirect_path }
 
       format.json do
         render json: session_resource(0, find_message(:signed_in), resource)
       end
 
-      format.all {head :no_content}
+      format.all { head :no_content }
     end
   end
 
@@ -77,8 +77,8 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     yield resource if block_given?
 
     respond_to do |format|
-      format.any(*navigational_formats) {redirect_to redirect_path}
-      format.all {head :no_content}
+      format.any(*navigational_formats) { redirect_to redirect_path }
+      format.all { head :no_content }
     end
   end
 
@@ -91,7 +91,7 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
         render json: session_resource(0, "This is the current session.")
       end
 
-      format.all {head :no_content}
+      format.all { head :no_content }
     end
   end
 
