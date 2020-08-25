@@ -15,15 +15,6 @@
 # the License.
 
 class Scalient::Rails::SessionsController < Devise::SessionsController
-  # The sign-in action doesn't need CSRF protection, which guards against hijacked cookies, and not against sign-ins
-  # with usernames and passwords. In fact, in the case of session cookie expiration with JavaScript MVCs like Ember.js,
-  # the user may be left in a permanent bind (short of a browser reload):
-  #
-  #   1. The user signs in successfully.
-  #   2. Rails helpfully invalidates the new session cookie because the CSRF token was invalid.
-  #   3. The user is forced to sign in again.
-  skip_before_action :verify_authenticity_token, only: [:create]
-
   # Renders the Devise sign-in page.
   def new
     self.resource = resource_class.new
