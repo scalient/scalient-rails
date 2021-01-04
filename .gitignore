@@ -1,5 +1,49 @@
-/.bundle/
+# Ignore bundler config.
+/.bundle
+
+# Ignore the default SQLite database.
+/db/*.sqlite3
+/db/*.sqlite3-*
+
+# Ignore all logfiles and tempfiles.
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+
+# Ignore pidfiles, but keep the directory.
+/tmp/pids/*
+!/tmp/pids/
+!/tmp/pids/.keep
+
+# Ignore uploaded files in development.
+/storage/*
+!/storage/.keep
+
+/public/assets
+.byebug_history
+
+# Ignore master key for decrypting credentials and more.
+/config/master.key
+
+/public/packs
+/public/packs-test
+/node_modules
+/yarn-error.log
+yarn-debug.log*
+.yarn-integrity
+
+# Ignore this infernal Mac OS metadata file.
+.DS_Store
+
+# Ignore RubyMine project metadata.
 /.idea/
-/.yardoc/
-/doc/
-/vendor/bundle/
+
+# Ignore the rbenv local version file.
+/.ruby-version
+
+# Ignore non-standard YAML configurations.
+/config/*.yml
+!/config/database.yml
+!/config/storage.yml
+!/config/webpacker.yml
