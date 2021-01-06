@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# frozen_string_literal: true
 #
 # Copyright 2015 Scalient LLC
 # All rights reserved.
