@@ -1,0 +1,10 @@
+---
+base: &base
+  adapter: sqlite3
+  pool: 10
+  timeout: 5000
+  encoding: unicode
+
+test: &test
+  <<: *base
+  database: db/test.sqlite3

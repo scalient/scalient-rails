@@ -3,7 +3,6 @@
 # Copyright 2015 Scalient LLC
 # All rights reserved.
 
-require "sprockets/rails"
 require "scalient/rails/helpers/application_helper"
 
 module Scalient
