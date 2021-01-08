@@ -16,5 +16,23 @@ module Api
 
       render json: object, include: "**"
     end
+
+    def update
+      model_class = params[:class_name].safe_constantize
+      key = model_class.model_name.param_key
+      object = model_class.where(id: params[:id]).first
+
+      if params.has_key?(key)
+        # All this to access some params as a raw hash? Come on!
+        attributes = ActionController::Parameters.new(_: params.require(key)).permit!.to_h[:_]
+      else
+        attributes = {}
+      end
+
+      object.assign_attributes(attributes)
+      object.save!
+
+      render json: object, include: "**"
+    end
   end
 end
