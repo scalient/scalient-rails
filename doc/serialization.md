@@ -11,7 +11,7 @@ focus on complex documents containing an extensive amount of interrelated resour
 
 ## Reluctant Serialization
 
-We say that a serializer is reluctant if it only serializes associations when given some sort of indication by the user.
+We say that a serializer is reluctant if it serializes associations only when given some sort of indication by the user.
 Since ActiveRecord is expressive and at the forefront of most Rails programmers' considerations, a natural definition of
 reluctance is whether a given association is loaded: If it's not loaded, don't include its elements in the rendered
 JSON:API document.
