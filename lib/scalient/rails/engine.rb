@@ -9,6 +9,8 @@ module Scalient
   module Rails
     class Engine < ::Rails::Engine
       isolate_namespace ::Scalient::Rails
+
+      config.autoload_paths.push(File.expand_path("../../../../app/policies", __FILE__))
     end
 
     ::Rails::Application.send(:include, ApplicationHelper)
