@@ -24,8 +24,8 @@ module Scalient
 
         send(:prepend, InstanceMethods)
 
-        # Scan the existing `accepts_nested_attributes_for` declarations and customize a monkey patch for them.
-        send(:prepend, create_nested_attributes_monkey_patch(*nested_attributes_options.keys.map(&:to_sym)))
+        # Scan the existing `accepts_nested_attributes_for` declarations and overwrite the existing setters.
+        redefine_nested_attributes_setters(*nested_attributes_options.keys.map(&:to_sym))
       end
 
       module InstanceMethods
@@ -56,19 +56,21 @@ module Scalient
       module ClassMethods
         def accepts_nested_attributes_for(*attrs)
           super(*attrs).tap do |_|
-            # Note: `attrs` has already been stripped of options by `super`.
-            send(:prepend, create_nested_attributes_monkey_patch(*attrs))
+            attrs.extract_options!
+            redefine_nested_attributes_setters(*attrs)
           end
         end
 
-        def create_nested_attributes_monkey_patch(*reflection_names)
-          Module.new do
-            reflection_names.each do |reflection_name|
-              define_method("#{reflection_name}_attributes=") do |*attrs|
-                super(*attrs).tap do |_|
-                  mark_nested_association_for_update(reflection_name)
-                end
-              end
+        # We deliberately avoid the preferred `prepend` strategy to not excessively pollute the ancestry chain with a
+        # potentially large number of `accepts_nested_attributes_for` declarations.
+        def redefine_nested_attributes_setters(*reflection_names)
+          reflection_names.each do |reflection_name|
+            setter_name = "#{reflection_name}_attributes="
+            unbound_setter = instance_method(setter_name)
+
+            define_method(setter_name) do |*attrs|
+              unbound_setter.bind(self).call(*attrs)
+              mark_nested_association_for_update(reflection_name)
             end
           end
         end
