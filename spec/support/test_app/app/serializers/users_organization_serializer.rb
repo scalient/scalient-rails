@@ -6,5 +6,5 @@ class UsersOrganizationSerializer < ApplicationSerializer
   belongs_to_reluctant :user
 
   # Mix things up with an explicit option.
-  belongs_to_reluctant :organization, class_name: "UsersOrganization"
+  belongs_to_reluctant :organization, class_name: "Organization"
 end
