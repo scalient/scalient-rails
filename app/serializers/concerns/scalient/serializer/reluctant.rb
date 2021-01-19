@@ -109,9 +109,9 @@ module Scalient
               end)
             end
 
-            # Make sure the foreign key is a string per the JSON:API specification.
+            # Make sure the foreign key is a string (or `nil`) per the JSON:API specification.
             define_method(foreign_key) do
-              object.send(foreign_key).to_s
+              object.send(foreign_key)&.to_s
             end
           end
 
