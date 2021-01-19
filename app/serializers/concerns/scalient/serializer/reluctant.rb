@@ -82,7 +82,7 @@ module Scalient
           belongs_to_reflection = nil
 
           # Allow explicit specification of the reference class name.
-          if (class_name = options.delete(:class_name)) &&
+          if (class_name = options[:class_name]) &&
               (model_class = class_name.safe_constantize) &&
               (reflection = model_class.reflections[name.to_s]) &&
               reflection.is_a?(ActiveRecord::Reflection::BelongsToReflection)
