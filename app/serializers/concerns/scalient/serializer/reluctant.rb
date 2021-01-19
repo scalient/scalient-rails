@@ -41,7 +41,8 @@ module Scalient
       module ClassMethods
         def update_action_predicate(&block)
           @update_action_predicate = block || @update_action_predicate || Proc.new do
-            instance_options[:template] == "update"
+            template = instance_options[:template]
+            template == "update" || template == "create"
           end
         end
 
