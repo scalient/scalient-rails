@@ -58,17 +58,9 @@ module Scalient
           end)
 
           define_method(name) do
-            # The association has supposedly been loaded into the `target`.
-            targets = object.association(name).target
-
-            if !is_update_action?
-              targets
-            else
-              targets.select do |target|
-                # Does the nested object have nested updates, or does it itself have changes?
-                !!target.try(:has_updated_nested_associations?) || target.previous_changes.size > 0
-              end
-            end
+            # The association has supposedly been loaded into the `target` for non-update-like actions, and recently
+            # created or updated records show up here for update-like actions.
+            object.association(name).target
           end
         end
 
