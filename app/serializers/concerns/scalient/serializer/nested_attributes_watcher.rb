@@ -20,6 +20,8 @@ module Scalient
       extend ActiveSupport::Concern
 
       included do
+        attr_reader :updated_nested_associations
+
         singleton_class.send(:prepend, ClassMethods)
 
         send(:prepend, InstanceMethods)
