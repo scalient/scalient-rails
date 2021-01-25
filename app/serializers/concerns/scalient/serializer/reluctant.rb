@@ -39,14 +39,32 @@ module Scalient
       end
 
       module ClassMethods
+        def self.extended(klass)
+          klass.class_eval do
+            class_attribute :_update_action_predicate
+            class_attribute :_include_belongs_to_foreign_key
+          end
+        end
+
         def update_action_predicate(&block)
           if !block
-            @@update_action_predicate ||= Proc.new do
+            self._update_action_predicate ||= Proc.new do
               template = instance_options[:template]
               template == "update" || template == "create"
             end
           else
-            @@update_action_predicate = block
+            self._update_action_predicate = block
+          end
+        end
+
+        def include_belongs_to_foreign_key(value = nil)
+          case value
+          when nil
+            self._include_belongs_to_foreign_key ||= :reluctant
+          when :always, :reluctant, :never
+            self._include_belongs_to_foreign_key = value
+          else
+            raise ArgumentError, "Value should be one of `always`, `reluctant`, `never`"
           end
         end
 
@@ -102,7 +120,14 @@ module Scalient
             [foreign_key, foreign_type].compact.each do |fk_attribute|
               attribute fk_attribute, if: (lambda do
                 # Write foreign keys only if the full association isn't being serialized.
-                !serialize_reluctant_association?(name)
+                case self.class.include_belongs_to_foreign_key
+                when :reluctant
+                  !serialize_reluctant_association?(name)
+                when :always
+                  true
+                else
+                  false
+                end
               end)
             end
 

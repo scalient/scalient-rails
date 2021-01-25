@@ -159,6 +159,8 @@ EOS
       "id": "1",
       "type": "references",
       "attributes": {
+        "referrer-id": "1",
+        "referrer-type": "User",
         "referent-id": "1",
         "referent-type": "Organization"
       },
@@ -326,7 +328,9 @@ EOS
       "type": "references",
       "attributes": {
         "referrer-id": "1",
-        "referrer-type": "User"
+        "referrer-type": "User",
+        "referent-id": "2",
+        "referent-type": "User"
       },
       "relationships": {
         "referent": {
