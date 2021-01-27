@@ -226,6 +226,7 @@ EOS
           }
       }
 
+      # Note: Inverse associations are marked as loaded and will be serialized.
       expect(JSON.pretty_generate(JSON.parse(response.body))).to(
           eq(<<EOS.strip
 {
@@ -271,8 +272,15 @@ EOS
       "attributes": {
         "admin": true,
         "home": false,
-        "user-id": "1",
         "organization-id": "1"
+      },
+      "relationships": {
+        "user": {
+          "data": {
+            "id": "1",
+            "type": "users"
+          }
+        }
       }
     },
     {
@@ -280,10 +288,15 @@ EOS
       "type": "users-organizations",
       "attributes": {
         "admin": false,
-        "home": false,
-        "user-id": "1"
+        "home": false
       },
       "relationships": {
+        "user": {
+          "data": {
+            "id": "1",
+            "type": "users"
+          }
+        },
         "organization": {
           "data": {
             "id": "3",
@@ -333,6 +346,12 @@ EOS
         "referent-type": "User"
       },
       "relationships": {
+        "referrer": {
+          "data": {
+            "id": "1",
+            "type": "users"
+          }
+        },
         "referent": {
           "data": {
             "id": "2",

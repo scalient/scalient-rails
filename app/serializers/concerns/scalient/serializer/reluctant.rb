@@ -26,12 +26,8 @@ module Scalient
       end
 
       def serialize_reluctant_association?(name)
-        if !is_update_action?
-          object.association(name).loaded?
-        else
-          # Go through with serialization if nested updates are detected.
-          !!object.try(:nested_association_was_updated?, name)
-        end
+        object.association(name).loaded? ||
+            (is_update_action? && !!object.try(:nested_association_was_updated?, name))
       end
 
       def is_update_action?
