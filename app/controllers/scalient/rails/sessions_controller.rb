@@ -29,18 +29,6 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
   # Signs in to the Devise scope, with special JSON handling added by us.
   def create
-    session_resource_name = controller_name.singularize
-
-    respond_to do |format|
-      # Remap the session information to the Devise scope name, which will be picked up on for authentication purposes.
-      format.json do
-        request.params[resource_name] = request.params[session_resource_name]
-        request.params.delete(session_resource_name)
-      end
-
-      format.all {}
-    end
-
     # Copied from `Devise::SessionsController`.
     self.resource = warden.authenticate!(auth_options)
     set_flash_message(:notice, :signed_in) if is_flashing_format?
@@ -48,12 +36,15 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
     sign_in(resource_name, resource)
     yield resource if block_given?
 
+    # Important: Declare the `:json` response format *first* to ensure that it's used for requests with no format
+    # preference (`*/*`). This is a sensible policy because browsers with human users will generate an `Accept` header
+    # containing `text/html`.
     respond_to do |format|
-      format.any(*navigational_formats) { redirect_to redirect_path }
-
       format.json do
         render json: session_resource(0, find_message(:signed_in), resource)
       end
+
+      format.any(*navigational_formats) { redirect_to redirect_path }
 
       format.all { head :no_content }
     end
