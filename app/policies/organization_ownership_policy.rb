@@ -143,7 +143,7 @@ class OrganizationOwnershipPolicy
           _, memo_table_relation, memo_table_alias, = memo_tuple
           _, _, join_table_alias, join_association_id = join_tuple
 
-          @targets_to_organizations_nodes.unshift(
+          @targets_to_organizations_nodes.push(
             memo_table_relation.
               join(join_table_alias).
               on(memo_table_alias[join_association_id].eq join_table_alias[:id]).
@@ -152,6 +152,10 @@ class OrganizationOwnershipPolicy
 
           join_tuple
         end
+
+        @targets_to_organizations_nodes.rotate!(-2)
+
+        nil
       end
 
       attr_reader :organizations
