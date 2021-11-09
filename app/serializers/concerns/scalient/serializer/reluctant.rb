@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2020 Scalient LLC
 #
@@ -22,12 +23,12 @@ module Scalient
       SERIALIZER_NAME_PATTERN = Regexp.new("\\A(?<class_name>.*)Serializer\\z")
 
       included do
-        self.send(:extend, ClassMethods)
+        send(:extend, ClassMethods)
       end
 
       def serialize_reluctant_association?(name)
         object.association(name).loaded? ||
-            (is_update_action? && !!object.try(:nested_association_was_updated?, name))
+          (is_update_action? && !!object.try(:nested_association_was_updated?, name))
       end
 
       def is_update_action?
@@ -44,9 +45,9 @@ module Scalient
 
         def update_action_predicate(&block)
           if !block
-            self._update_action_predicate ||= Proc.new do
+            self._update_action_predicate ||= proc do
               template = instance_options[:template]
-              template == "update" || template == "create"
+              ["update", "create"].include?(template)
             end
           else
             self._update_action_predicate = block
@@ -67,7 +68,7 @@ module Scalient
         def has_many_reluctant(name, *args)
           name = name.to_sym
 
-          has_many name, *args, if: (lambda do
+          has_many name, *args, if: (-> do
             serialize_reluctant_association?(name)
           end)
 
@@ -81,7 +82,7 @@ module Scalient
         def has_one_reluctant(name, *args)
           name = name.to_sym
 
-          has_one name, *args, if: (lambda do
+          has_one name, *args, if: (-> do
             serialize_reluctant_association?(name)
           end)
         end
@@ -114,7 +115,7 @@ module Scalient
             foreign_type = belongs_to_reflection.foreign_type
 
             [foreign_key, foreign_type].compact.each do |fk_attribute|
-              attribute fk_attribute, if: (lambda do
+              attribute fk_attribute, if: (-> do
                 # Write foreign keys only if the full association isn't being serialized.
                 case self.class.include_belongs_to_foreign_key
                 when :reluctant
@@ -134,9 +135,9 @@ module Scalient
           end
 
           belongs_to name, options.merge(
-              if: (lambda do
-                serialize_reluctant_association?(name)
-              end)
+            if: (-> do
+              serialize_reluctant_association?(name)
+            end)
           )
         end
       end

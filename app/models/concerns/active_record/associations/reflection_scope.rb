@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Portions Copyright 2020 The Affective Computing Company
 #
@@ -50,7 +51,7 @@ module ActiveRecord
 
       # Lifted from `ActiveRecord::Associations::AssociationScope.create`.
       def self.create(&block)
-        block ||= lambda { |val| val }
+        block ||= ->(val) { val }
         new(block)
       end
 
@@ -72,11 +73,11 @@ module ActiveRecord
           raise ArgumentError, "Please provide an association or reflection"
         end
 
-        if !reversed
-          klass = reflection.klass
+        klass = if !reversed
+          reflection.klass
         else
           # In a reversal, the starting point is the reflection's model.
-          klass = reflection.active_record
+          reflection.active_record
         end
 
         scope = klass.unscoped
@@ -133,11 +134,9 @@ module ActiveRecord
               polymorphic_type = transform_value(owner.class.polymorphic_name)
               scope = apply_scope(scope, foreign_table, reflection.type, polymorphic_type)
             end
-          else
-            if reflection.type
-              polymorphic_type = transform_value(reflection_owner_class.polymorphic_name)
-              scope = apply_scope(scope, foreign_table, reflection.type, polymorphic_type)
-            end
+          elsif reflection.type
+            polymorphic_type = transform_value(reflection_owner_class.polymorphic_name)
+            scope = apply_scope(scope, foreign_table, reflection.type, polymorphic_type)
           end
 
           scope.joins!(join(foreign_table, constraint))

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2015 The Affective Computing Company
 #
@@ -51,46 +52,46 @@ class OrganizationAuthorizationPolicy
     targets_1 = target_class.arel_table.alias("targets_1")
 
     users_1_to_users_organizations_1_node =
-        users_1
-            .relation
-            .join(users_organizations_1)
-            .on(users_1[:id].eq users_organizations_1[:user_id])
-            .join_sources.first
+      users_1.
+        relation.
+        join(users_organizations_1).
+        on(users_1[:id].eq users_organizations_1[:user_id]).
+        join_sources.first
 
     users_organizations_1_to_organizations_1_node =
-        users_organizations_1
-            .relation
-            .join(organizations_1)
-            .on(users_organizations_1[:organization_id].eq organizations_1[:id])
-            .join_sources.first
+      users_organizations_1.
+        relation.
+        join(organizations_1).
+        on(users_organizations_1[:organization_id].eq organizations_1[:id]).
+        join_sources.first
 
     organizations_1_to_authorizations_1_node =
-        organizations_1
-            .relation
-            .join(authorizations_1)
-            .on(organizations_1[:id].eq authorizations_1[:organization_id])
-            .join_sources.first
+      organizations_1.
+        relation.
+        join(authorizations_1).
+        on(organizations_1[:id].eq authorizations_1[:organization_id]).
+        join_sources.first
 
     authorizations_1_to_targets_1_node =
-        authorizations_1
-            .relation
-            .join(targets_1)
-            .on(authorizations_1["#{target_param_key}_id".to_sym].eq targets_1[:id])
-            .join_sources.first
+      authorizations_1.
+        relation.
+        join(targets_1).
+        on(authorizations_1["#{target_param_key}_id".to_sym].eq targets_1[:id]).
+        join_sources.first
 
     users_1_to_users_organizations_2_node =
-        users_1
-            .relation
-            .join(users_organizations_2)
-            .on(users_1[:id].eq users_organizations_2[:user_id])
-            .join_sources.first
+      users_1.
+        relation.
+        join(users_organizations_2).
+        on(users_1[:id].eq users_organizations_2[:user_id]).
+        join_sources.first
 
     organizations_1_to_users_organizations_1_node =
-        organizations_1
-            .relation
-            .join(users_organizations_1)
-            .on(organizations_1[:id].eq users_organizations_1[:organization_id])
-            .join_sources.first
+      organizations_1.
+        relation.
+        join(users_organizations_1).
+        on(organizations_1[:id].eq users_organizations_1[:organization_id]).
+        join_sources.first
 
     instance_methods = Module.new do
       define_method(:create_scope) do
@@ -100,28 +101,28 @@ class OrganizationAuthorizationPolicy
         authorization = send(authorization_param_key.to_sym)
 
         # Does the user already own the target object through some organization?
-        User
-            .select(users_1[Arel.star])
-            .from(users_1)
-            .joins(
-                # These joins detect ownership through some organization.
-                users_1_to_users_organizations_1_node,
-                users_organizations_1_to_organizations_1_node,
-                organizations_1_to_authorizations_1_node,
-                authorizations_1_to_targets_1_node,
-                # This join checks that the user is an admin for the authorization's organization.
-                users_1_to_users_organizations_2_node
-            )
-            .where(
-                (users_1[:id].eq current_user.id)
-                    .and(
-                        authorizations_1["#{target_param_key}_id".to_sym]
-                            .eq authorization.send(target_param_key.to_sym).id
-                    )
-                    .and(users_organizations_2[:admin].eq true)
-                    .and(users_organizations_2[:organization_id].eq authorization.organization.id)
-            )
-            .order(users_1[:id])
+        User.
+          select(users_1[Arel.star]).
+          from(users_1).
+          joins(
+            # These joins detect ownership through some organization.
+            users_1_to_users_organizations_1_node,
+            users_organizations_1_to_organizations_1_node,
+            organizations_1_to_authorizations_1_node,
+            authorizations_1_to_targets_1_node,
+            # This join checks that the user is an admin for the authorization's organization.
+            users_1_to_users_organizations_2_node
+          ).
+          where(
+            (users_1[:id].eq current_user.id).
+                and(
+                  authorizations_1["#{target_param_key}_id".to_sym].
+                      eq authorization.send(target_param_key.to_sym).id
+                ).
+                and(users_organizations_2[:admin].eq true).
+                and(users_organizations_2[:organization_id].eq authorization.organization.id)
+          ).
+          order(users_1[:id])
       end
 
       define_method(:update_scope) do
@@ -131,16 +132,16 @@ class OrganizationAuthorizationPolicy
         authorization = send(authorization_param_key.to_sym)
 
         # Does the user own the target object through the authorization?
-        User
-            .select(users_1[Arel.star])
-            .from(users_1)
-            .joins(users_1_to_users_organizations_1_node)
-            .where(
-                (users_1[:id].eq current_user.id)
-                    .and(users_organizations_1[:admin].eq true)
-                    .and(users_organizations_1[:organization_id].eq authorization.organization.id)
-            )
-            .order(users_1[:id])
+        User.
+          select(users_1[Arel.star]).
+          from(users_1).
+          joins(users_1_to_users_organizations_1_node).
+          where(
+            (users_1[:id].eq current_user.id).
+                and(users_organizations_1[:admin].eq true).
+                and(users_organizations_1[:organization_id].eq authorization.organization.id)
+          ).
+          order(users_1[:id])
       end
 
       define_method(:authorized_create?) do
@@ -203,21 +204,21 @@ class OrganizationAuthorizationPolicy
           authorizations = scope.arel_table
 
           authorizations_to_organizations_node =
-              authorizations
-                  .join(organizations_1)
-                  .on(authorizations[:organization_id].eq organizations_1[:id])
-                  .join_sources.first
+            authorizations.
+              join(organizations_1).
+              on(authorizations[:organization_id].eq organizations_1[:id]).
+              join_sources.first
 
           # Get all authorizations joined with organizations that the user is an admin for.
-          scope
-              .joins(
-                  authorizations_to_organizations_node,
-                  organizations_1_to_users_organizations_1_node
-              )
-              .where(
-                  (users_organizations_1[:user_id].eq current_user.id)
-                      .and(users_organizations_1[:admin].eq true)
-              )
+          scope.
+            joins(
+              authorizations_to_organizations_node,
+              organizations_1_to_users_organizations_1_node
+            ).
+            where(
+              (users_organizations_1[:user_id].eq current_user.id).
+                  and(users_organizations_1[:admin].eq true)
+            )
         end
 
         def resolve

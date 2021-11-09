@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2015-2019 The Affective Computing Company
 #
@@ -49,25 +50,25 @@ class OrganizationOwnershipPolicy
     targets_1 = targets.alias("targets_1")
 
     users_1_to_users_organizations_1_node =
-        users_1
-            .relation
-            .join(users_organizations_1)
-            .on(users_1[:id].eq users_organizations_1[:user_id])
-            .join_sources.first
+      users_1.
+        relation.
+        join(users_organizations_1).
+        on(users_1[:id].eq users_organizations_1[:user_id]).
+        join_sources.first
 
     users_organizations_1_to_organizations_node =
-        users_organizations_1
-            .relation
-            .join(organizations)
-            .on(users_organizations_1[:organization_id].eq organizations[:id])
-            .join_sources.first
+      users_organizations_1.
+        relation.
+        join(organizations).
+        on(users_organizations_1[:organization_id].eq organizations[:id]).
+        join_sources.first
 
     organizations_to_users_organizations_1_node =
-        organizations
-            .relation
-            .join(users_organizations_1)
-            .on(organizations[:id].eq users_organizations_1[:organization_id])
-            .join_sources.first
+      organizations.
+        relation.
+        join(users_organizations_1).
+        on(organizations[:id].eq users_organizations_1[:organization_id]).
+        join_sources.first
 
     instance_methods = Module.new do
       define_method(:initialize_arel) do |join_param_keys|
@@ -82,8 +83,8 @@ class OrganizationOwnershipPolicy
           through_table_relation = through_class.arel_table
           through_table_alias = through_table_relation.alias("#{through_table_relation.name}_1")
           [through_class, through_table_relation, through_table_alias, "#{join_param_key}_id"]
-        end
-            .push([target_class, targets_1.relation, targets_1, "#{target_param_key}_id"])
+        end.
+          push([target_class, targets_1.relation, targets_1, "#{target_param_key}_id"])
 
         first_join_tuple = join_tuples.first
         first_join_class, first_join_table_relation, first_join_table_alias, first_association_id = first_join_tuple
@@ -98,95 +99,85 @@ class OrganizationOwnershipPolicy
         end.arel_table.alias("authorizations_1")
 
         @organizations_to_targets_nodes = [
-            organizations
-                .relation
-                .join(@authorizations)
-                .on(organizations[:id].eq @authorizations[:organization_id])
-                .join_sources.first,
+          organizations.
+            relation.
+            join(@authorizations).
+            on(organizations[:id].eq @authorizations[:organization_id]).
+            join_sources.first,
 
-            @authorizations
-                .relation
-                .join(first_join_table_alias)
-                .on(@authorizations[first_association_id].eq first_join_table_alias[:id])
-                .join_sources.first
+          @authorizations.
+            relation.
+            join(first_join_table_alias).
+            on(@authorizations[first_association_id].eq first_join_table_alias[:id]).
+            join_sources.first
         ]
 
         join_tuples[1..-1].reduce(first_join_tuple) do |memo_tuple, join_tuple|
           _, memo_table_relation, memo_table_alias, memo_association_id = memo_tuple
-          _, _, join_table_alias, _ = join_tuple
+          _, _, join_table_alias, = join_tuple
 
           @organizations_to_targets_nodes.push(
-              memo_table_relation
-                  .join(join_table_alias)
-                  .on(memo_table_alias[:id].eq join_table_alias[memo_association_id])
-                  .join_sources.first
+            memo_table_relation.
+              join(join_table_alias).
+              on(memo_table_alias[:id].eq join_table_alias[memo_association_id]).
+              join_sources.first
           )
 
           join_tuple
         end
 
         @targets_to_organizations_nodes = [
-            first_join_table_relation
-                .join(@authorizations)
-                .on(first_join_table_alias[:id].eq @authorizations[first_association_id])
-                .join_sources.first,
+          first_join_table_relation.
+            join(@authorizations).
+            on(first_join_table_alias[:id].eq @authorizations[first_association_id]).
+            join_sources.first,
 
-            @authorizations
-                .relation
-                .join(organizations)
-                .on(@authorizations[:organization_id].eq organizations[:id])
-                .join_sources.first
+          @authorizations.
+            relation.
+            join(organizations).
+            on(@authorizations[:organization_id].eq organizations[:id]).
+            join_sources.first
         ]
 
         join_tuples.reverse[1..-1].reduce(join_tuples.last) do |memo_tuple, join_tuple|
-          _, memo_table_relation, memo_table_alias, _ = memo_tuple
+          _, memo_table_relation, memo_table_alias, = memo_tuple
           _, _, join_table_alias, join_association_id = join_tuple
 
           @targets_to_organizations_nodes.unshift(
-              memo_table_relation
-                  .join(join_table_alias)
-                  .on(memo_table_alias[join_association_id].eq join_table_alias[:id])
-                  .join_sources.first
+            memo_table_relation.
+              join(join_table_alias).
+              on(memo_table_alias[join_association_id].eq join_table_alias[:id]).
+              join_sources.first
           )
 
           join_tuple
         end
       end
 
-      def organizations
-        @organizations
-      end
+      attr_reader :organizations
 
-      def targets
-        @targets
-      end
+      attr_reader :targets
 
-      def authorizations
-        @authorizations
-      end
+      attr_reader :authorizations
 
-      def organizations_to_targets_nodes
-        @organizations_to_targets_nodes
-      end
+      attr_reader :organizations_to_targets_nodes
 
-      def targets_to_organizations_nodes
-        @targets_to_organizations_nodes
-      end
+      attr_reader :targets_to_organizations_nodes
 
       define_method(:create_scope) do
         return users_1 \
           if current_user.superadmin?
 
         # Is the user an admin for some organization?
-        User
-            .select(1)
-            .from(users_1)
-            .joins(users_1_to_users_organizations_1_node)
-            .where(
-                (users_1[:id].eq current_user.id)
-                    .and(users_organizations_1[:admin].eq true)
-            )
-            .order(users_1[:id]) # Prevent ActiveRecord from inserting its own `order` scope.
+        User.
+          select(1).
+          from(users_1).
+          joins(users_1_to_users_organizations_1_node).
+          where(
+            (users_1[:id].eq current_user.id).
+                and(users_organizations_1[:admin].eq true)
+          ).
+          order(users_1[:id]) # Prevent ActiveRecord from inserting its own `order` scope.
       end
 
       define_method(:update_scope) do
@@ -196,20 +187,20 @@ class OrganizationOwnershipPolicy
         object = send(target_param_key.to_sym)
 
         # Does the user own the target object through some organization?
-        User
-            .select(1)
-            .from(users_1)
-            .joins(
-                users_1_to_users_organizations_1_node,
-                users_organizations_1_to_organizations_node,
-                *organizations_to_targets_nodes,
-            )
-            .where(
-                (users_1[:id].eq current_user.id)
-                    .and(users_organizations_1[:admin].eq true)
-                    .and(targets_1[:id].eq object.id)
-            )
-            .order(users_1[:id]) # Prevent ActiveRecord from inserting its own `order` scope.
+        User.
+          select(1).
+          from(users_1).
+          joins(
+            users_1_to_users_organizations_1_node,
+            users_organizations_1_to_organizations_node,
+            *organizations_to_targets_nodes
+          ).
+          where(
+            (users_1[:id].eq current_user.id).
+                and(users_organizations_1[:admin].eq true).
+                and(targets_1[:id].eq object.id)
+          ).
+          order(users_1[:id]) # Prevent ActiveRecord from inserting its own `order` scope.
       end
 
       define_method(:authorized_create?) do
@@ -268,11 +259,11 @@ class OrganizationOwnershipPolicy
 
         define_method(:existence_subquery) do
           subquery =
-              targets_1
-                  .relation
-                  .from.from(targets_1)
-                  .project(1)
-                  .where(targets[:id].eq targets_1[:id])
+            targets_1.
+              relation.
+              from.from(targets_1).
+              project(1).
+              where(targets[:id].eq targets_1[:id])
 
           [*targets_to_organizations_nodes, organizations_to_users_organizations_1_node].each do |node|
             subquery.join(node.left).on(node.right.expr)
@@ -283,7 +274,7 @@ class OrganizationOwnershipPolicy
 
         define_method(:resolve_scope) do
           scope_to_working_organization = current_user.respond_to?(:working_users_organization) &&
-              (working_users_organization_id = current_user.working_users_organization&.id)
+            (working_users_organization_id = current_user.working_users_organization&.id)
 
           if current_user.superadmin?
             if !scope_to_working_organization

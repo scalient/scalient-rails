@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2014 Roy Liu
 #

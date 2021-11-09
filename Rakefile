@@ -26,13 +26,13 @@ else
 
   namespace :spec do
     types =
-        begin
-          dirs = Dir["./spec/**/*_spec.rb"].
-              map { |f| f.sub(/^\.\/(spec\/\w+)\/.*/, "\\1") }.
-              uniq.
-              select { |f| File.directory?(f) }
-          Hash[dirs.map { |d| [d.split("/").last, d] }]
-        end
+      begin
+        dirs = Dir["./spec/**/*_spec.rb"].
+          map { |f| f.sub(/^\.\/(spec\/\w+)\/.*/, "\\1") }.
+          uniq.
+          select { |f| File.directory?(f) }
+        Hash[dirs.map { |d| [d.split("/").last, d] }]
+      end
 
     task :prepare do
       ENV["RACK_ENV"] = ENV["RAILS_ENV"] = "test"
