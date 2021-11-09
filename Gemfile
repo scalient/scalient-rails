@@ -8,6 +8,8 @@ source "https://rubygems.org"
 # Resolve dependencies from the gemspec for development convenience.
 gemspec
 
+gem "rubocop"
+
 group :test do
   gem "byebug"
   gem "factory_bot_rails"
