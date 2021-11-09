@@ -1,0 +1,148 @@
+# frozen_string_literal: true
+
+# Copyright 2021 Roy Liu
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not
+# use this file except in compliance with the License. You may obtain a copy of
+# the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations under
+# the License.
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    # Read an auxiliary `.rubocop_ignore` file if it exists.
+    <% if (ignore_file = Pathname.new(".rubocop_ignore").expand_path(Dir.pwd)) && ignore_file.file? %>
+      <% if (lines = ignore_file.open("rb") { |f| f.read }.split("\n")) && lines.size > 0 %>
+        <% lines.each do |path| %>
+          - <%= path %>
+        <% end %>
+      <% else %>
+        []
+      <% end %>
+    <% else %>
+      []
+    <% end %>
+
+# Align relative to the start of the block for consistency.
+Layout/BlockAlignment:
+  EnforcedStyleAlignWith: start_of_block
+
+# Align relative to the `end` statement for consistency and density.
+Layout/CaseIndentation:
+  EnforcedStyle: end
+
+# Prefer trailing dot operator positioning to hint the Ruby parser of impending tokens.
+Layout/DotPosition:
+  EnforcedStyle: trailing
+
+# Align relative to the start of line for consistency.
+Layout/EndAlignment:
+  EnforcedStyleAlignWith: start_of_line
+
+# Prefer to not mess with the last argument of a hash.
+Layout/HashAlignment:
+  EnforcedLastArgumentHashStyle: always_ignore
+
+# Prefer consistency and density over a better-looking heredoc.
+Layout/HeredocIndentation:
+  Enabled: false
+
+# Prefer indentation over alignment for consistency and density.
+Layout/LineEndStringConcatenationIndentation:
+  EnforcedStyle: indented
+
+# Modern screens have plenty of pixels, and 120 seems like a good adjustment.
+Layout/LineLength:
+  Max: 120
+
+# Prefer indentation over alignment for consistency and density.
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
+
+# Prefer indentation over alignment for consistency and density.
+Layout/MultilineOperationIndentation:
+  EnforcedStyle: indented
+
+# Prefer a compact style with regards to braces.
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: no_space
+
+# Prefer `alias_method` because `alias` uses special syntax.
+Style/Alias:
+  EnforcedStyle: prefer_alias_method
+
+# Prefer `map` over `select` because it sounds more mechanical.
+Style/CollectionMethods:
+  PreferredMethods:
+    collect: map
+
+# Allow `else`s consisting of only `nil`.
+Style/EmptyElse:
+  EnforcedStyle: empty
+
+# Allow empty methods that look empty.
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+# Don't replace `__FILE__` with `__dir__` with `File.expand_path` if developers are more comfortable with the former.
+Style/ExpandPathArguments:
+  Enabled: false
+
+# Don't convert `Hash[]` usage to `Array#to_h` if developers are more comfortable with the former.
+Style/HashConversion:
+  Enabled: false
+
+# Don't convert one-line `if` statements into modifiers which aren't readable and are probably antipatterns.
+Style/IfUnlessModifier:
+  Enabled: false
+
+# Prefer the `->` syntax for lambdas.
+Style/Lambda:
+  EnforcedStyle: literal
+
+# Don't convert negated `if`s to `unless` because simplicity supersedes brevity.
+Style/NegatedIf:
+  Enabled: false
+
+# Allow negated `if`/`else`s because the true and false conditions should be ordered based on their importance.
+Style/NegatedIfElseCondition:
+  Enabled: false
+
+# Don't convert `foo > 0` to `foo.positive?` because simplicity supersedes brevity.
+Style/NumericPredicate:
+  Enabled: false
+
+# Don't fold `begin`/`rescue`/`end` blocks into the method body because simplicity supersedes brevity.
+Style/RedundantBegin:
+  Enabled: false
+
+# Don't convert `//` to `%r{}` if developers are more comfortable with the former.
+Style/RegexpLiteral:
+  Enabled: false
+
+# Prefer `""` over `''`.
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+# Don't convert `""` to `''` in interpolated string literals because developers shouldn't be confused.
+Style/StringLiteralsInInterpolation:
+  Enabled: false
+
+# Don't convert an array of symbols to `%i[]` because simplicity supersedes brevity.
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+# Don't convert an array of symbols to `%w[]` because simplicity supersedes brevity.
+Style/WordArray:
+  EnforcedStyle: brackets
+
+# Don't convert `foo.size > 0` to `foo.empty?` because simplicity supersedes brevity.
+Style/ZeroLengthPredicate:
+  Enabled: false
