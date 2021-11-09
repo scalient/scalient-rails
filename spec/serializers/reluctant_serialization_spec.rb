@@ -12,7 +12,7 @@ describe Scalient::Serializer::Reluctant do
       get :show, params: {class_name: "User", id: user.id}
 
       expect(JSON.pretty_generate(JSON.parse(response.body))).to(
-          eq(<<EOS.strip
+        eq(<<EOS.strip
 {
   "data": {
     "id": "1",
@@ -32,11 +32,11 @@ EOS
       FactoryBot.create(:users_organization_cmu, user: user)
 
       get :show, params: {
-          class_name: "User", id: user.id, includes: [:home_users_organization, {users_organizations: :organization}]
+        class_name: "User", id: user.id, includes: [:home_users_organization, {users_organizations: :organization}]
       }
 
       expect(JSON.pretty_generate(JSON.parse(response.body))).to(
-          eq(<<EOS.strip
+        eq(<<EOS.strip
 {
   "data": {
     "id": "1",
@@ -99,18 +99,18 @@ EOS
       user = FactoryBot.create(:user)
       users_organization_home = FactoryBot.create(:users_organization_home, user: user)
       FactoryBot.create(
-          :reference_user_to_organization_home,
-          referrer: user,
-          referent: users_organization_home.organization
+        :reference_user_to_organization_home,
+        referrer: user,
+        referent: users_organization_home.organization
       )
 
       get :show, params: {
-          class_name: "User", id: user.id, includes: [:users_organizations, :references]
+        class_name: "User", id: user.id, includes: [:users_organizations, :references]
       }
 
       # Note how normal and polymorphic `belongs_to` associations are covered.
       expect(JSON.pretty_generate(JSON.parse(response.body))).to(
-          eq(<<EOS.strip
+        eq(<<EOS.strip
 {
   "data": {
     "id": "1",
@@ -185,50 +185,50 @@ EOS
       users_organization_cmu = FactoryBot.create(:users_organization_cmu, user: user)
 
       patch :update, params: {
-          class_name: "User", id: user.id, user: {
-              # Test nested posting to a `has_many` association.
-              users_organizations_attributes: [
-                  # Update an existing record.
-                  {
-                      id: users_organization_cmu.id,
-                      admin: true
-                  },
-                  # Create a new record.
-                  {
-                      # TODO: Why do we need a placeholder attribute at all, and is this is a bug in
-                      # `ActiveRecord::NestedAttributes::ClassMethods`? Removing it causes the `UsersOrganization`
-                      # record above to be modified.
-                      id: nil,
-                      # Test nested posting to a `belongs_to` association.
-                      organization_attributes: {
-                          name: "Embedded Through `UsersOrganization`"
-                      }
-                  }
-              ],
-              # Test nested posting to a `has_one` association.
-              home_users_organization_attributes: {
-                  home: true,
-                  # Test nested posting to a `belongs_to` association.
-                  organization_attributes: {
-                      id: nil
-                  }
-              },
-              # Test nested posting to a `has_one` polymorphic association.
-              references_attributes: [
-                  {
-                      referent_type: "User",
-                      # Test nested posting to a `belongs_to` polymorphic association.
-                      referent_attributes: {
-                          name: "Embedded Through `Reference`"
-                      }
-                  }
-              ]
-          }
+        class_name: "User", id: user.id, user: {
+          # Test nested posting to a `has_many` association.
+          users_organizations_attributes: [
+            # Update an existing record.
+            {
+              id: users_organization_cmu.id,
+              admin: true
+            },
+            # Create a new record.
+            {
+              # TODO: Why do we need a placeholder attribute at all, and is this is a bug in
+              # `ActiveRecord::NestedAttributes::ClassMethods`? Removing it causes the `UsersOrganization`
+              # record above to be modified.
+              id: nil,
+              # Test nested posting to a `belongs_to` association.
+              organization_attributes: {
+                name: "Embedded Through `UsersOrganization`"
+              }
+            }
+          ],
+          # Test nested posting to a `has_one` association.
+          home_users_organization_attributes: {
+            home: true,
+            # Test nested posting to a `belongs_to` association.
+            organization_attributes: {
+              id: nil
+            }
+          },
+          # Test nested posting to a `has_one` polymorphic association.
+          references_attributes: [
+            {
+              referent_type: "User",
+              # Test nested posting to a `belongs_to` polymorphic association.
+              referent_attributes: {
+                name: "Embedded Through `Reference`"
+              }
+            }
+          ]
+        }
       }
 
-      # Note: Inverse associations are marked as loaded and will be serialized.
+      # NOTE: Inverse associations are marked as loaded and will be serialized.
       expect(JSON.pretty_generate(JSON.parse(response.body))).to(
-          eq(<<EOS.strip
+        eq(<<EOS.strip
 {
   "data": {
     "id": "1",

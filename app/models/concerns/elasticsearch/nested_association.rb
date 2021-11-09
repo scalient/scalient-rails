@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2020 The Affective Computing Company
 #
@@ -30,7 +31,7 @@ module Elasticsearch
         key = options[:key]
         mapper = options[:mapper]
 
-        [key, self.association(reflection.name).scope.map { |record| record.instance_exec(&mapper) }]
+        [key, association(reflection.name).scope.map { |record| record.instance_exec(&mapper) }]
       end]
     end
 
@@ -62,13 +63,13 @@ module Elasticsearch
 
         # The user can return an arbitrary nested document if `attribute_name` is a `Proc`.
         denormalized_reflections_to_options[reflection] = {
-            key: options_key,
+          key: options_key,
             mapper: if !attribute_name.is_a?(Proc)
-              Proc.new do
-                read_attribute(attribute_name)
-              end
-            else
-              attribute_name
+                      proc do
+                        read_attribute(attribute_name)
+                      end
+                    else
+                      attribute_name
             end
         }
 
@@ -96,8 +97,8 @@ module Elasticsearch
               # Fetch and cache the reverse reflection scopes because many of the intermediate records (including this
               # one) may no longer exist after destruction.
               (@cached_reflection_scopes ||= []).push(
-                  ActiveRecord::Associations::ReflectionScope.scope(reverse_reflection, true).
-                      where(intermediate_class.arel_table[:id].eq self.id).to_a
+                ActiveRecord::Associations::ReflectionScope.scope(reverse_reflection, true).
+                    where(intermediate_class.arel_table[:id].eq id).to_a
               )
             end
 
@@ -117,8 +118,8 @@ module Elasticsearch
               else
                 # ... otherwise, just reindex the records of reverse reflection.
                 base_class.reindex_parent_records(
-                    ActiveRecord::Associations::ReflectionScope.scope(reverse_reflection, true).
-                        where(intermediate_class.arel_table[:id].eq self.id)
+                  ActiveRecord::Associations::ReflectionScope.scope(reverse_reflection, true).
+                      where(intermediate_class.arel_table[:id].eq id)
                 )
               end
             end

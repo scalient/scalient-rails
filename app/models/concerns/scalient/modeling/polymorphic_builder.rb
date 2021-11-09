@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2021 Scalient LLC
 #
@@ -20,7 +21,7 @@ module Scalient
       extend ActiveSupport::Concern
 
       included do
-        self.send(:extend, ClassMethods)
+        send(:extend, ClassMethods)
       end
 
       module ClassMethods

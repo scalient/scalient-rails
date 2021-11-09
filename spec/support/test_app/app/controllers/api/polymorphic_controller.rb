@@ -22,11 +22,11 @@ module Api
       key = model_class.model_name.param_key
       object = model_class.where(id: params[:id]).first
 
-      if params.has_key?(key)
+      attributes = if params.has_key?(key)
         # All this to access some params as a raw hash? Come on!
-        attributes = ActionController::Parameters.new(_: params.require(key)).permit!.to_h[:_]
+        ActionController::Parameters.new(_: params.require(key)).permit!.to_h[:_]
       else
-        attributes = {}
+        {}
       end
 
       object.assign_attributes(attributes)

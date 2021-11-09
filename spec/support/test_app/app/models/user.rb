@@ -6,7 +6,7 @@ class User < ApplicationRecord
   has_many :users_organizations
   has_many :organizations, through: :users_organizations
 
-  has_one :home_users_organization, lambda { where(home: true) }, class_name: "UsersOrganization"
+  has_one :home_users_organization, -> { where(home: true) }, class_name: "UsersOrganization"
   has_one :home_organization, through: :home_users_organization, source: "organization", class_name: "Organization"
 
   has_many :references, as: :referrer

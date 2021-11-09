@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2019-2021 The Affective Computing Company
 #
@@ -20,7 +21,7 @@ ActiveModelSerializers.config.tap do |config|
 
   # This is very similar to `BY_RESOURCE_NAMESPACE`, except it also takes into account the explicitly provided
   # namespace.
-  by_resource_namespace_and_explicit_namespace = Proc.new do |resource_class, _serializer_class, _namespace|
+  by_resource_namespace_and_explicit_namespace = proc do |resource_class, _serializer_class, _namespace|
     resource_namespace = ActiveModelSerializers::LookupChain.namespace_for(resource_class)
     serializer_name = ActiveModelSerializers::LookupChain.serializer_from(resource_class)
 
@@ -28,7 +29,7 @@ ActiveModelSerializers.config.tap do |config|
   end
 
   config.serializer_lookup_chain = [
-      by_resource_namespace_and_explicit_namespace
+    by_resource_namespace_and_explicit_namespace
   ].concat(ActiveModelSerializers::LookupChain::DEFAULT)
 end
 
@@ -45,7 +46,7 @@ module ActiveModelSerializers
         def self.type_for(serializer, serializer_type = nil, transform_options = {})
           if serializer_type
             raw_type = inflect_type(serializer_type)
-            raw_type.gsub!("/".freeze, ActiveModelSerializers.config.jsonapi_namespace_separator)
+            raw_type.gsub!("/", ActiveModelSerializers.config.jsonapi_namespace_separator)
           else
             raw_type = raw_type_from_serializer_object(serializer.object)
           end
@@ -63,13 +64,13 @@ module ActiveModelSerializers
           if belongs_to_id_on_self?(association)
             id = parent_serializer.read_attribute_for_serialization(association.reflection.foreign_key)
             type =
-                if association.polymorphic?
-                  # We can't infer resource type for polymorphic relationships from the serializer.
-                  # We can ONLY know a polymorphic resource type by inspecting each resource.
-                  association.lazy_association.serializer&.json_key
-                else
-                  association.reflection.type.to_s
-                end
+              if association.polymorphic?
+                # We can't infer resource type for polymorphic relationships from the serializer.
+                # We can ONLY know a polymorphic resource type by inspecting each resource.
+                association.lazy_association.serializer&.json_key
+              else
+                association.reflection.type.to_s
+              end
 
             # A `nil` type implies `null` data.
             if type

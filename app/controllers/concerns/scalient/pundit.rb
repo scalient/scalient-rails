@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 #
 # Copyright 2015-2019 Roy Liu
 #
@@ -27,9 +28,9 @@ module Scalient
         referrer = request.referrer
         is_self_redirect_loop = referrer && URI(request.original_url) == URI(referrer)
 
-        if referrer && defined?(Devise)
-          is_sign_in_redirect_loop = !!Devise.mappings.find do |scope, _|
-            sign_in_helper = "new_#{scope.to_s}_session_url"
+        is_sign_in_redirect_loop = if referrer && defined?(Devise)
+          !!Devise.mappings.find do |scope, _|
+            sign_in_helper = "new_#{scope}_session_url"
 
             if respond_to?(sign_in_helper) && URI(referrer) == URI(send(sign_in_helper))
               scope
@@ -38,11 +39,11 @@ module Scalient
             end
           end
         else
-          is_sign_in_redirect_loop = false
+          false
         end
 
         redirect_to referrer && !is_self_redirect_loop && !is_sign_in_redirect_loop ? referrer : root_path,
-            alert: "You are not authorized to perform this action."
+                    alert: "You are not authorized to perform this action."
       end
     end
   end
