@@ -153,7 +153,7 @@ class OrganizationOwnershipPolicy
           join_tuple
         end
 
-        @targets_to_organizations_nodes.rotate!(-2)
+        @targets_to_organizations_nodes.rotate!(2)
 
         nil
       end
