@@ -40,6 +40,7 @@ module Scalient
           klass.class_eval do
             class_attribute :_update_action_predicate
             class_attribute :_include_belongs_to_foreign_key
+            class_attribute :_foreign_type_inflection
           end
         end
 
@@ -62,6 +63,16 @@ module Scalient
             self._include_belongs_to_foreign_key = value
           else
             raise ArgumentError, "Value should be one of `always`, `reluctant`, `never`"
+          end
+        end
+
+        def foreign_type_inflection(&block)
+          if !block
+            self._foreign_type_inflection ||= proc do |type|
+              type.underscore.pluralize
+            end
+          else
+            self._foreign_type_inflection = block
           end
         end
 
@@ -131,6 +142,14 @@ module Scalient
             # Make sure the foreign key is a string (or `nil`) per the JSON:API specification.
             define_method(foreign_key) do
               object.send(foreign_key)&.to_s
+            end
+
+            if foreign_type
+              define_method(foreign_type) do
+                type = object.send(foreign_type)
+                serializer = self.class.serializer_for(type&.safe_constantize, namespace: instance_options[:namespace])
+                serializer&._type || (type && self.class.foreign_type_inflection.call(type))
+              end
             end
           end
 

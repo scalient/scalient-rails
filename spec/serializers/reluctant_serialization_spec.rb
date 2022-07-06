@@ -160,9 +160,9 @@ EOS
       "type": "references",
       "attributes": {
         "referrer-id": "1",
-        "referrer-type": "User",
+        "referrer-type": "users",
         "referent-id": "1",
-        "referent-type": "Organization"
+        "referent-type": "organizations"
       },
       "relationships": {
         "referrer": {
@@ -341,9 +341,9 @@ EOS
       "type": "references",
       "attributes": {
         "referrer-id": "1",
-        "referrer-type": "User",
+        "referrer-type": "users",
         "referent-id": "2",
-        "referent-type": "User"
+        "referent-type": "users"
       },
       "relationships": {
         "referrer": {
