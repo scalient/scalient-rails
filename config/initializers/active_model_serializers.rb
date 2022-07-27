@@ -29,8 +29,14 @@ ActiveModelSerializers.config.tap do |config|
   end
 
   config.serializer_lookup_chain = [
-    by_resource_namespace_and_explicit_namespace
-  ].concat(ActiveModelSerializers::LookupChain::DEFAULT)
+    by_resource_namespace_and_explicit_namespace,
+    ActiveModelSerializers::LookupChain::BY_PARENT_SERIALIZER,
+    ActiveModelSerializers::LookupChain::BY_NAMESPACE,
+    ActiveModelSerializers::LookupChain::BY_RESOURCE_NAMESPACE
+    # We deliberately leave this one out to prevent surprising behavior. In other words, `MyModule::MyModel` will never
+    # match `MyModelSerializer`.
+    # ActiveModelSerializers::LookupChain::BY_RESOURCE,
+  ]
 end
 
 require "active_model_serializers/adapter/json_api/resource_identifier"
