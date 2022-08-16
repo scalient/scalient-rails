@@ -67,11 +67,11 @@ class Scalient::Rails::SessionsController < Devise::SessionsController
 
   # Gets the current session. Provided for RESTfulness.
   def show
-    self.resource = resource_class.new
+    self.resource = warden.authenticate!(auth_options)
 
     respond_to do |format|
       format.json do
-        render json: session_resource(0, "This is the current session.")
+        render json: session_resource(0, "This is the current session.", resource)
       end
 
       format.all { head :no_content }
