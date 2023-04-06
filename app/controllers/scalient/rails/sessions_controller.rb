@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-#
-# Copyright 2014-2017 Roy Liu
+# Copyright 2014-2023 Roy Liu
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -15,85 +14,63 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-class Scalient::Rails::SessionsController < Devise::SessionsController
-  # Renders the Devise sign-in page.
-  def new
-    self.resource = resource_class.new
-    clean_up_passwords(resource)
-    yield resource if block_given?
+module Scalient
+  module Rails
+    class SessionsController < Devise::SessionsController
+      # Signs in to the Devise scope, with special JSON handling added by us.
+      def create
+        # Copied from `Devise::SessionsController`.
+        self.resource = warden.authenticate!(auth_options)
+        set_flash_message(:notice, :signed_in) if is_flashing_format?
+        redirect_path = after_sign_in_path_for(resource_name)
+        sign_in(resource_name, resource)
+        yield resource if block_given?
 
-    respond_to do |format|
-      format.any(*navigational_formats) { render serialize_options(resource) }
-      format.all { head :no_content }
-    end
-  end
+        # Important: Declare the `:json` response format *first* to ensure that it's used for requests with no format
+        # preference (`*/*`). This is a sensible policy because browsers with human users will generate an `Accept`
+        # header containing `text/html`.
+        respond_to do |format|
+          format.json do
+            render json: response_json(find_message(:signed_in))
+          end
 
-  # Signs in to the Devise scope, with special JSON handling added by us.
-  def create
-    # Copied from `Devise::SessionsController`.
-    self.resource = warden.authenticate!(auth_options)
-    set_flash_message(:notice, :signed_in) if is_flashing_format?
-    redirect_path = after_sign_in_path_for(resource_name)
-    sign_in(resource_name, resource)
-    yield resource if block_given?
-
-    # Important: Declare the `:json` response format *first* to ensure that it's used for requests with no format
-    # preference (`*/*`). This is a sensible policy because browsers with human users will generate an `Accept` header
-    # containing `text/html`.
-    respond_to do |format|
-      format.json do
-        render json: session_resource(0, find_message(:signed_in), resource)
+          format.any(*navigational_formats) { redirect_to redirect_path }
+          format.all { head :no_content }
+        end
       end
 
-      format.any(*navigational_formats) { redirect_to redirect_path }
+      # Signs out of the Devise scope, with special JSON handling added by us.
+      def destroy
+        # Copied from `Devise::SessionsController`.
+        redirect_path = after_sign_out_path_for(resource_name)
+        signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
+        set_flash_message(:notice, :signed_out) if signed_out && is_flashing_format?
+        yield resource if block_given?
 
-      format.all { head :no_content }
-    end
-  end
-
-  # Signs out of the Devise scope, with special JSON handling added by us.
-  def destroy
-    # Copied from `Devise::SessionsController`.
-    redirect_path = after_sign_out_path_for(resource_name)
-    signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
-    set_flash_message(:notice, :signed_out) if signed_out && is_flashing_format?
-    yield resource if block_given?
-
-    respond_to do |format|
-      format.any(*navigational_formats) { redirect_to redirect_path }
-      format.all { head :no_content }
-    end
-  end
-
-  # Gets the current session. Provided for RESTfulness.
-  def show
-    self.resource = warden.authenticate!(auth_options)
-
-    respond_to do |format|
-      format.json do
-        render json: session_resource(0, "This is the current session.", resource)
+        respond_to do |format|
+          format.any(*navigational_formats) { redirect_to redirect_path }
+          format.all { head :no_content }
+        end
       end
 
-      format.all { head :no_content }
-    end
-  end
+      # Gets the current session. Provided for RESTfulness.
+      def show
+        self.resource = warden.authenticate!(auth_options)
 
-  # Use the translations for `Devise::SessionsController`.
-  def translation_scope
-    "devise.sessions"
-  end
+        respond_to do |format|
+          format.json do
+            render json: response_json("This is the current session.")
+          end
 
-  private
+          format.all { head :no_content }
+        end
+      end
 
-  # Attempts to retrieve the session resource to take advantage of serialization.
-  def session_resource(id, message, resource = nil)
-    model = controller_path.classify.safe_constantize
+      private
 
-    if model
-      model.new(id: id, message: message, resource_name => resource)
-    else
-      # Default to JSON if the session resource model isn't found.
-      {id: id, message: message, resource_name => resource.as_json}
+      def response_json(message)
+        {id: 0, message: message, resource_name => resource.as_json}
+      end
     end
   end
 end
