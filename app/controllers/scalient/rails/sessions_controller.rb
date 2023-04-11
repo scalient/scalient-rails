@@ -39,20 +39,6 @@ module Scalient
         end
       end
 
-      # Signs out of the Devise scope, with special JSON handling added by us.
-      def destroy
-        # Copied from `Devise::SessionsController`.
-        redirect_path = after_sign_out_path_for(resource_name)
-        signed_out = (Devise.sign_out_all_scopes ? sign_out : sign_out(resource_name))
-        set_flash_message(:notice, :signed_out) if signed_out && is_flashing_format?
-        yield resource if block_given?
-
-        respond_to do |format|
-          format.any(*navigational_formats) { redirect_to redirect_path }
-          format.all { head :no_content }
-        end
-      end
-
       # Gets the current session. Provided for RESTfulness.
       def show
         self.resource = warden.authenticate!(auth_options)
