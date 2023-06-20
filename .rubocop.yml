@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright 2021 Roy Liu
+# Copyright 2021-2023 Roy Liu
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -46,10 +46,6 @@ Layout/DotPosition:
 Layout/EndAlignment:
   EnforcedStyleAlignWith: start_of_line
 
-# Prefer to not mess with the last argument of a hash.
-Layout/HashAlignment:
-  EnforcedLastArgumentHashStyle: always_ignore
-
 # Prefer consistency and density over a better-looking heredoc.
 Layout/HeredocIndentation:
   Enabled: false
@@ -73,6 +69,10 @@ Layout/MultilineOperationIndentation:
 # Prefer a compact style with regards to braces.
 Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: no_space
+
+# Don't group accessors because simplicity supersedes brevity.
+Style/AccessorGrouping:
+  Enabled: false
 
 # Prefer `alias_method` because `alias` uses special syntax.
 Style/Alias:
@@ -101,6 +101,10 @@ Style/HashConversion:
 
 # Don't convert one-line `if` statements into modifiers which aren't readable and are probably antipatterns.
 Style/IfUnlessModifier:
+  Enabled: false
+
+# Don't enforce conversion of `select` to `reject` because consistency may supersede brevity.
+Style/InverseMethods:
   Enabled: false
 
 # Prefer the `->` syntax for lambdas.
@@ -138,6 +142,18 @@ Style/StringLiteralsInInterpolation:
 # Don't convert an array of symbols to `%i[]` because simplicity supersedes brevity.
 Style/SymbolArray:
   EnforcedStyle: brackets
+
+# Require commas at the end of multiline argument lists.
+Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+
+# Require commas at the end of multiline array literals.
+Style/TrailingCommaInArrayLiteral:
+  EnforcedStyleForMultiline: consistent_comma
+
+# Require commas at the end of multiline hash literals.
+Style/TrailingCommaInHashLiteral:
+  EnforcedStyleForMultiline: consistent_comma
 
 # Don't convert an array of symbols to `%w[]` because simplicity supersedes brevity.
 Style/WordArray:
