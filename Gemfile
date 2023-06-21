@@ -10,6 +10,7 @@ source "https://rubygems.org"
 gemspec
 
 gem "rubocop"
+gem "uppy-s3_multipart"
 
 group :test do
   gem "byebug"
