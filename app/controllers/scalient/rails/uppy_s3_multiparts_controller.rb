@@ -2,6 +2,7 @@
 
 # Adapted from `https://github.com/janko/uppy-s3_multipart/blob/master/lib/uppy/s3_multipart/app.rb`.
 
+require "pathname"
 require "uppy/s3_multipart"
 
 module Scalient
@@ -12,7 +13,7 @@ module Scalient
         type = params["type"]
         filename = params["filename"]
 
-        key = SecureRandom.hex + File.extname(filename.to_s)
+        key = key_transform.call(SecureRandom.hex, filename)
         key = [*prefix, key].join("/")
 
         options = {}
@@ -22,7 +23,7 @@ module Scalient
         end
 
         if filename
-          options[:content_disposition] = ContentDisposition.inline(filename)
+          options[:content_disposition] = ContentDisposition.inline(Pathname.new(filename).basename.to_s)
         end
 
         if is_public
@@ -130,6 +131,10 @@ module Scalient
 
       def app_options
         @options ||= ::Rails.application.config.uppy_s3_multipart.options
+      end
+
+      def key_transform
+        @key_transform ||= ::Rails.application.config.uppy_s3_multipart.key_transform
       end
 
       def client_call(operation, **options)

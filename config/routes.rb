@@ -20,12 +20,13 @@ Scalient::Rails::Engine.routes.draw do
   constraints(upload_id: id_any_pattern) do
     # Draw the Uppy Companion routes (see `https://uppy.io/docs/companion/`).
     post "/s3/multipart", to: "uppy_s3_multiparts#create"
-    match "/s3/multipart", to: "uppy_s3_multiparts#preflight", via: :options
     get "/s3/multipart/:upload_id", to: "uppy_s3_multiparts#show"
     get "/s3/multipart/:upload_id/batch", to: "uppy_s3_multiparts#batch", as: "batch"
-    match "/s3/multipart/:upload_id/:part_number", to: "uppy_s3_multiparts#preflight", via: :options
     get "/s3/multipart/:upload_id/:part_number", to: "uppy_s3_multiparts#part_number", as: "part_number"
     post "/s3/multipart/:upload_id/complete", to: "uppy_s3_multiparts#complete", as: "complete"
     delete "/s3/multipart/:upload_id", to: "uppy_s3_multiparts#destroy"
+    # Use temporary CORS shims until the Uppy authors fix their stuff.
+    match "/s3/multipart", to: "uppy_s3_multiparts#preflight", via: :options
+    match "/s3/multipart/:upload_id/:part_number", to: "uppy_s3_multiparts#preflight", via: :options
   end
 end

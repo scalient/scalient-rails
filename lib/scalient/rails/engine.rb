@@ -15,6 +15,10 @@ module Scalient
       config.uppy_s3_multipart.prefix = nil
       config.uppy_s3_multipart.public = false
       config.uppy_s3_multipart.options = {}
+      config.uppy_s3_multipart.key_transform = Proc.new do |hex, filename|
+        path = Pathname.new(filename)
+        (path.dirname + Pathname.new(hex).sub_ext(path.extname)).to_s
+      end
     end
 
     ::Rails::Application.include ApplicationHelper
