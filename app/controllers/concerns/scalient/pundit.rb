@@ -20,8 +20,8 @@ module Scalient
     extend ActiveSupport::Concern
 
     included do
-      include ::Pundit
-
+      include ::Pundit::Authorization
+      
       rescue_from ::Pundit::NotAuthorizedError, with: :not_authorized
 
       def not_authorized
