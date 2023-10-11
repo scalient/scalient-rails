@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-#
-# Copyright 2015-2019 Roy Liu
+# Copyright 2015-2023 Roy Liu
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -21,7 +20,7 @@ module Scalient
 
     included do
       include ::Pundit::Authorization
-      
+
       rescue_from ::Pundit::NotAuthorizedError, with: :not_authorized
 
       def not_authorized
