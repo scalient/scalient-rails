@@ -28,7 +28,7 @@ module Scalient
         is_self_redirect_loop = referrer && URI(request.original_url) == URI(referrer)
 
         is_sign_in_redirect_loop = if referrer && defined?(Devise)
-          !!Devise.mappings.find do |scope, _|
+          !Devise.mappings.find do |scope, _|
             sign_in_helper = "new_#{scope}_session_url"
 
             if respond_to?(sign_in_helper) && URI(referrer) == URI(send(sign_in_helper))
@@ -36,13 +36,21 @@ module Scalient
             else
               nil
             end
-          end
+          end.nil?
         else
           false
         end
 
+        # Set an alert only if we have `ActionDispatch::Flash` middleware installed, which is less likely now that we've
+        # been running Rails in `api_only` mode.
+        options = if request.respond_to?(:flash)
+          {alert: "You are not authorized to perform this action."}
+        else
+          {}
+        end
+
         redirect_to referrer && !is_self_redirect_loop && !is_sign_in_redirect_loop ? referrer : root_path,
-                    alert: "You are not authorized to perform this action."
+                    options
       end
     end
   end
