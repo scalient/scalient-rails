@@ -52,6 +52,27 @@ module Scalient
         end
       end
 
+      # Monkey patch this entire method until https://github.com/heartcombo/devise/pull/5319 is merged.
+      def require_no_authentication
+        assert_is_devise_resource!
+        return unless is_navigational_format?
+
+        no_input = devise_mapping.no_input_strategies
+
+        authenticated = if no_input.present?
+          args = no_input.dup.push scope: resource_name
+          warden.authenticate?(*args)
+        else
+          warden.authenticated?(resource_name)
+        end
+
+        return unless authenticated && (resource = warden.user(resource_name))
+
+        # This is the changed line to use `set_flash_message!` instead of `set_flash_message`.
+        set_flash_message!(:alert, "already_authenticated", scope: "devise.failure")
+        redirect_to after_sign_in_path_for(resource)
+      end
+
       private
 
       def response_json(message)
