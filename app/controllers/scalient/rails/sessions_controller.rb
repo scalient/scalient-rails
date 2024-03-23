@@ -21,8 +21,7 @@ module Scalient
       def create
         # Copied from `Devise::SessionsController`.
         self.resource = warden.authenticate!(auth_options)
-        set_flash_message(:notice, :signed_in) if is_flashing_format?
-        redirect_path = after_sign_in_path_for(resource_name)
+        set_flash_message!(:notice, :signed_in)
         sign_in(resource_name, resource)
         yield resource if block_given?
 
@@ -34,7 +33,7 @@ module Scalient
             render json: response_json(find_message(:signed_in))
           end
 
-          format.any(*navigational_formats) { redirect_to redirect_path }
+          format.any(*navigational_formats) { redirect_to after_sign_in_path_for(resource_name) }
           format.all { head :no_content }
         end
       end
