@@ -42,6 +42,10 @@ Layout/CaseIndentation:
 Layout/DotPosition:
   EnforcedStyle: trailing
 
+# Allow contiguous comment blocks that include magic comments at the very top of the file.
+Layout/EmptyLineAfterMagicComment:
+  Enabled: false
+
 # Align relative to the start of line for consistency.
 Layout/EndAlignment:
   EnforcedStyleAlignWith: start_of_line
@@ -70,6 +74,10 @@ Layout/MultilineOperationIndentation:
 Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: no_space
 
+# Sometimes we want to name canonical blocks for clarity.
+Naming/BlockForwarding:
+  Enabled: false
+
 # Don't group accessors because simplicity supersedes brevity.
 Style/AccessorGrouping:
   Enabled: false
@@ -83,6 +91,10 @@ Style/CollectionMethods:
   PreferredMethods:
     collect: map
 
+# Allow `!!expression` syntax as an idiomatic way to coerce into a boolean.
+Style/DoubleNegation:
+  Enabled: false
+
 # Allow `else`s consisting of only `nil`.
 Style/EmptyElse:
   EnforcedStyle: empty
@@ -93,6 +105,11 @@ Style/EmptyMethod:
 
 # Don't replace `__FILE__` with `__dir__` with `File.expand_path` if developers are more comfortable with the former.
 Style/ExpandPathArguments:
+  Enabled: false
+
+# Guard clauses obscure control flow by hiding conditionals after basic blocks. This is suboptimal since conditionals
+# and loops are the very constructs that make programs undecidable.
+Style/GuardClause:
   Enabled: false
 
 # Don't convert `Hash[]` usage to `Array#to_h` if developers are more comfortable with the former.
@@ -119,12 +136,20 @@ Style/NegatedIf:
 Style/NegatedIfElseCondition:
   Enabled: false
 
+# This autocorrects into a `next unless ...` guard clause, and we heavily discourage guard clauses.
+Style/Next:
+  Enabled: false
+
 # Don't convert `foo > 0` to `foo.positive?` because simplicity supersedes brevity.
 Style/NumericPredicate:
   Enabled: false
 
 # Don't fold `begin`/`rescue`/`end` blocks into the method body because simplicity supersedes brevity.
 Style/RedundantBegin:
+  Enabled: false
+
+# Don't remove leading `::`s because they might be there to increase clarity.
+Style/RedundantConstantBase:
   Enabled: false
 
 # Don't convert `//` to `%r{}` if developers are more comfortable with the former.
