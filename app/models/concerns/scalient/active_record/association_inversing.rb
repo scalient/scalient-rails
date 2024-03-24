@@ -19,7 +19,7 @@ module Scalient
     module AssociationInversing
       extend ActiveSupport::Concern
 
-      ALLOWED_CREATE_INVERSE_OPTIONS = [:multiplicity, :passthrough_options, :scope, :through].freeze
+      ALLOWED_CREATE_INVERSE_OPTIONS = [:after, :multiplicity, :passthrough_options, :scope, :through].freeze
 
       included do
         raise ArgumentError, "This concern should be prepended"
@@ -38,6 +38,7 @@ module Scalient
               create_inverse_scope:,
               create_inverse_passthrough_options:,
               create_inverse_multiplicity:,
+              create_inverse_after_hook:
             }
 
             class_name = options[:class_name] || new_reflection.name.to_s.camelize
@@ -91,6 +92,8 @@ module Scalient
             else
               raise "Control should never reach here"
             end
+
+            target_class.instance_exec(&create_inverse_after_hook)
           end
 
           reflections
@@ -126,6 +129,7 @@ module Scalient
             create_inverse_through_name:,
             create_inverse_passthrough_options:,
             create_inverse_multiplicity:,
+            create_inverse_after_hook:
           }
 
           class_name = options[:class_name] ||
@@ -236,6 +240,8 @@ module Scalient
             end
           end
 
+          target_class.instance_exec(&create_inverse_after_hook)
+
           new_reflection
         end
 
@@ -244,6 +250,7 @@ module Scalient
           create_inverse_through_name = nil
           create_inverse_passthrough_options = {}
           create_inverse_multiplicity = :many
+          create_inverse_after_hook = -> {}
 
           if create_inverse_options.is_a?(Hash)
             invalid_options = (create_inverse_options.keys - ALLOWED_CREATE_INVERSE_OPTIONS)
@@ -258,6 +265,7 @@ module Scalient
             create_inverse_passthrough_options = create_inverse_options[:passthrough_options] ||
               create_inverse_passthrough_options
             create_inverse_multiplicity = (create_inverse_options[:multiplicity] || create_inverse_multiplicity).to_sym
+            create_inverse_after_hook = create_inverse_options[:after] || create_inverse_after_hook
 
             case create_inverse_multiplicity
             when :many, :one
@@ -271,6 +279,7 @@ module Scalient
             create_inverse_through_name:,
             create_inverse_passthrough_options:,
             create_inverse_multiplicity:,
+            create_inverse_after_hook:,
           }
         end
       end
