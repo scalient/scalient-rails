@@ -108,7 +108,7 @@ module Scalient
           if (class_name = options[:class_name]) &&
               (model_class = class_name.safe_constantize) &&
               (reflection = model_class.reflections[name.to_s]) &&
-              reflection.is_a?(ActiveRecord::Reflection::BelongsToReflection)
+              reflection.is_a?(::ActiveRecord::Reflection::BelongsToReflection)
             belongs_to_reflection = reflection
           end
 
@@ -117,7 +117,7 @@ module Scalient
               (m = SERIALIZER_NAME_PATTERN.match(self.name)) &&
               (model_class = m[:class_name].safe_constantize) &&
               (reflection = model_class.reflections[name.to_s]) &&
-              reflection.is_a?(ActiveRecord::Reflection::BelongsToReflection)
+              reflection.is_a?(::ActiveRecord::Reflection::BelongsToReflection)
             belongs_to_reflection = reflection
           end
 
