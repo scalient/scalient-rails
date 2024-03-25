@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-#
-# Copyright 2021 Scalient LLC
+# Copyright 2021-2024 Scalient LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -16,7 +15,7 @@
 # the License.
 
 module Scalient
-  module Modeling
+  module ActiveRecord
     module PolymorphicBuilder
       extend ActiveSupport::Concern
 
@@ -42,8 +41,8 @@ module Scalient
               raise "Foreign class `#{foreign_class}` not found"
             end
 
-            if id = params[foreign_class.primary_key]
-              if record = foreign_class.find_by_id(id)
+            if (id = params[foreign_class.primary_key])
+              if (record = foreign_class.find_by_id(id))
                 record
               else
                 raise_nested_attributes_record_not_found!(association_name, id)
