@@ -178,6 +178,14 @@ module Scalient
               )
             end
 
+            # The user will almost always intend for the inverse `belongs_to` to be optional, so check if it hasn't
+            # been explicitly set.
+            if !target_options.include?(:optional)
+              target_options.merge!(
+                optional: true,
+              )
+            end
+
             target_class.belongs_to inverse_name.to_sym, create_inverse_scope, **target_options
           else
             inverse_name = inverse_of_name ||
