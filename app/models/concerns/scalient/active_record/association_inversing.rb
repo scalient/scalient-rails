@@ -19,7 +19,7 @@ module Scalient
     module AssociationInversing
       extend ActiveSupport::Concern
 
-      ALLOWED_CREATE_INVERSE_OPTIONS = [:after, :multiplicity, :passthrough_options, :scope, :through].freeze
+      ALLOWED_CREATE_INVERSE_OPTIONS = [:after, :multiplicity, :scope, :source, :through].freeze
 
       included do
         raise ArgumentError, "This concern should be prepended"
@@ -36,7 +36,6 @@ module Scalient
 
             normalize_create_inverse_options(create_inverse_options) => {
               create_inverse_scope:,
-              create_inverse_passthrough_options:,
               create_inverse_multiplicity:,
               create_inverse_after_hook:
             }
@@ -65,14 +64,14 @@ module Scalient
               raise "Target class already has inverse association #{inverse_name.dump}"
             end
 
-            target_options = create_inverse_passthrough_options.merge(
+            target_options = {
               # Just the name of the current association.
               inverse_of: new_reflection.name,
               # Just the name of the current class.
               class_name: name,
               # The foreign key that was determined by `super`.
               foreign_key: new_reflection.foreign_key,
-            )
+            }
 
             if !is_polymorphic
               target_options.merge!(
@@ -127,7 +126,7 @@ module Scalient
           normalize_create_inverse_options(create_inverse_options) => {
             create_inverse_scope:,
             create_inverse_through_name:,
-            create_inverse_passthrough_options:,
+            create_inverse_source_name:,
             create_inverse_multiplicity:,
             create_inverse_after_hook:
           }
@@ -143,7 +142,7 @@ module Scalient
           through_reflection = reflections[options[:through]&.to_s]
           inverse_of_name = options[:inverse_of]&.to_s
 
-          target_options = create_inverse_passthrough_options.dup
+          target_options = {}
 
           if !through_reflection
             inverse_name = inverse_of_name || model_name.singular
@@ -235,6 +234,8 @@ module Scalient
               target_options.merge!(
                 # The through association in the reverse direction.
                 through: create_inverse_through_name,
+                # The source association in the reverse direction.
+                source: create_inverse_source_name,
               )
             end
 
@@ -256,7 +257,7 @@ module Scalient
         def normalize_create_inverse_options(create_inverse_options)
           create_inverse_scope = nil
           create_inverse_through_name = nil
-          create_inverse_passthrough_options = {}
+          create_inverse_source_name = nil
           create_inverse_multiplicity = :many
           create_inverse_after_hook = -> {}
 
@@ -270,8 +271,7 @@ module Scalient
 
             create_inverse_scope = create_inverse_options[:scope]
             create_inverse_through_name = create_inverse_options[:through]&.to_s
-            create_inverse_passthrough_options = create_inverse_options[:passthrough_options] ||
-              create_inverse_passthrough_options
+            create_inverse_source_name = create_inverse_options[:source]&.to_s
             create_inverse_multiplicity = (create_inverse_options[:multiplicity] || create_inverse_multiplicity).to_sym
             create_inverse_after_hook = create_inverse_options[:after] || create_inverse_after_hook
 
@@ -285,7 +285,7 @@ module Scalient
           {
             create_inverse_scope:,
             create_inverse_through_name:,
-            create_inverse_passthrough_options:,
+            create_inverse_source_name:,
             create_inverse_multiplicity:,
             create_inverse_after_hook:,
           }
