@@ -29,16 +29,21 @@ module Scalient
         def belongs_to(association_name, scope = nil, **options)
           create_inverse_options = options.delete(:create_inverse)
 
-          reflections = super
-
-          if create_inverse_options
-            new_reflection = reflections[association_name.to_s]
-
-            normalize_create_inverse_options(create_inverse_options) => {
+          if !create_inverse_options
+            super
+          else
+            create_inverse_options = normalize_create_inverse_options(create_inverse_options)
+            create_inverse_options => {
               create_inverse_scope:,
               create_inverse_multiplicity:,
               create_inverse_after_hook:
             }
+
+            inverse_name = add_explicit_inverse_of_option!(:belongs_to, create_inverse_options, options)
+
+            reflections = super
+
+            new_reflection = reflections[association_name.to_s]
 
             class_name = options[:class_name] || new_reflection.name.to_s.camelize
             target_class = class_name.safe_constantize
@@ -46,17 +51,6 @@ module Scalient
             if !target_class
               raise ArgumentError, "Target class #{class_name.dump} not found"
             end
-
-            inverse_of_name = options[:inverse_of]&.to_s
-            inverse_name = inverse_of_name ||
-              case create_inverse_multiplicity
-              when :many
-                model_name.plural
-              when :one
-                model_name.singular
-              else
-                raise "Control should never reach here"
-              end
 
             is_polymorphic = !!options[:polymorphic] || false
 
@@ -93,37 +87,47 @@ module Scalient
             end
 
             target_class.instance_exec(&create_inverse_after_hook)
-          end
 
-          reflections
+            reflections
+          end
         end
 
         def has_many(association_name, scope = nil, **options)
           create_inverse_options = options.delete(:create_inverse)
 
-          reflections = super
+          if !create_inverse_options
+            super
+          else
+            create_inverse_options = normalize_create_inverse_options(create_inverse_options)
+            add_explicit_inverse_of_option!(:has, create_inverse_options, options)
 
-          if create_inverse_options
+            reflections = super
+
             create_has_inverse(reflections[association_name.to_s], create_inverse_options, **options)
-          end
 
-          reflections
+            reflections
+          end
         end
 
         def has_one(association_name, scope = nil, **options)
           create_inverse_options = options.delete(:create_inverse)
 
-          reflections = super
+          if !create_inverse_options
+            super
+          else
+            create_inverse_options = normalize_create_inverse_options(create_inverse_options)
+            add_explicit_inverse_of_option!(:has, create_inverse_options, options)
 
-          if create_inverse_options
+            reflections = super
+
             create_has_inverse(reflections[association_name.to_s], create_inverse_options, **options)
-          end
 
-          reflections
+            reflections
+          end
         end
 
         def create_has_inverse(new_reflection, create_inverse_options, **options)
-          normalize_create_inverse_options(create_inverse_options) => {
+          create_inverse_options => {
             create_inverse_scope:,
             create_inverse_through_name:,
             create_inverse_source_name:,
@@ -140,12 +144,12 @@ module Scalient
           end
 
           through_reflection = reflections[options[:through]&.to_s]
-          inverse_of_name = options[:inverse_of]&.to_s
+          # This is guaranteed to exist, and as a string too.
+          inverse_name = options[:inverse_of]
 
           target_options = {}
 
           if !through_reflection
-            inverse_name = inverse_of_name || model_name.singular
             polymorphic_belongs_to_name = options[:as]&.to_s
 
             if target_class.reflections[inverse_name]
@@ -187,16 +191,6 @@ module Scalient
 
             target_class.belongs_to inverse_name.to_sym, create_inverse_scope, **target_options
           else
-            inverse_name = inverse_of_name ||
-              case create_inverse_multiplicity
-              when :many
-                model_name.plural
-              when :one
-                model_name.singular
-              else
-                raise "Control should never reach here"
-              end
-
             if target_class.reflections[inverse_name]
               raise "Target class already has inverse association #{inverse_name.dump}"
             end
@@ -289,6 +283,34 @@ module Scalient
             create_inverse_multiplicity:,
             create_inverse_after_hook:,
           }
+        end
+
+        def add_explicit_inverse_of_option!(association_type, create_inverse_options, options)
+          create_inverse_options => {
+            create_inverse_multiplicity:
+          }
+
+          through_reflection = reflections[options[:through]&.to_s]
+          inverse_of_name = options[:inverse_of]&.to_s
+          inverse_name = if !through_reflection && association_type == :has
+            inverse_of_name || model_name.singular
+          else
+            inverse_of_name ||
+              case create_inverse_multiplicity
+              when :many
+                model_name.plural
+              when :one
+                model_name.singular
+              else
+                raise "Control should never reach here"
+              end
+          end
+
+          # Be helpful and add an explicit inverse if one hasn't been declared. If it already exists, then effectively
+          # this normalizes the value to a string.
+          options.merge!(inverse_of: inverse_name)
+
+          inverse_name
         end
       end
     end
