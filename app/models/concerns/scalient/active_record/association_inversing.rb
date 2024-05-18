@@ -19,7 +19,7 @@ module Scalient
     module AssociationInversing
       extend ActiveSupport::Concern
 
-      ALLOWED_CREATE_INVERSE_OPTIONS = [:after, :multiplicity, :scope, :source, :through].freeze
+      ALLOWED_CREATE_INVERSE_OPTIONS = [:after, :foreign_key, :multiplicity, :scope, :source, :through].freeze
 
       included do
         raise ArgumentError, "This concern should be prepended"
@@ -129,8 +129,6 @@ module Scalient
         def create_has_inverse(new_reflection, create_inverse_options, **options)
           create_inverse_options => {
             create_inverse_scope:,
-            create_inverse_through_name:,
-            create_inverse_source_name:,
             create_inverse_multiplicity:,
             create_inverse_after_hook:
           }
@@ -156,10 +154,18 @@ module Scalient
               raise "Target class already has inverse association #{inverse_name.dump}"
             end
 
-            target_options.merge!(
-              # The foreign key that was determined by `super`.
-              foreign_key: new_reflection.foreign_key,
-            )
+            foreign_key = if create_inverse_options.include?(:create_inverse_foreign_key)
+              create_inverse_options[:create_inverse_foreign_key]
+            else
+              new_reflection.foreign_key
+            end
+
+            if foreign_key
+              target_options.merge!(
+                # The foreign key that was determined by `super`.
+                foreign_key:,
+              )
+            end
 
             if !polymorphic_belongs_to_name
               target_options.merge!(
@@ -191,32 +197,53 @@ module Scalient
 
             target_class.belongs_to inverse_name.to_sym, create_inverse_scope, **target_options
           else
+            if (foreign_key = create_inverse_options[:create_inverse_foreign_key])
+              target_options.merge!(foreign_key:)
+            end
+
             if target_class.reflections[inverse_name]
               raise "Target class already has inverse association #{inverse_name.dump}"
             end
 
-            create_inverse_through_name ||= through_reflection.name
+            through_name = if create_inverse_options.include?(:create_inverse_through)
+              create_inverse_options[:create_inverse_through]
+            else
+              through_reflection.name
+            end
 
             if !through_reflection.is_a?(::ActiveRecord::Reflection::BelongsToReflection)
-              create_inverse_source_reflection = through_reflection.inverse_of
+              source_reflection = through_reflection.inverse_of
 
               # The source reflection on the created inverse association is the inverse of the through reflection as it
               # appears from the perspective of the current association.
-              if !create_inverse_source_reflection
+              if !source_reflection
                 raise ArgumentError, "No inverse detected on through association " \
                   "#{through_reflection.name.to_s.dump}. This is needed to identify `source` on the generated " \
                   "`create_inverse` association"
               end
 
-              target_options.merge!(
-                # The through association in the reverse direction.
-                through: create_inverse_through_name,
-                # Helps traverse the through association.
-                source: create_inverse_source_reflection.name,
-              )
+              source_name = if create_inverse_options.include?(:create_inverse_source)
+                create_inverse_options[:create_inverse_source]
+              else
+                source_reflection.name
+              end
+
+              if through_name
+                target_options.merge!(
+                  # The through association in the reverse direction.
+                  through: through_name,
+                )
+              end
+
+              if source_name
+                target_options.merge!(
+                  # Helps traverse the through association.
+                  source: source_name,
+                )
+              end
 
               # Is the source reflection polymorphic? We need to add `source_type` for disambiguation purposes.
-              if !create_inverse_source_reflection.polymorphic?
+              if !source_reflection.polymorphic?
                 # No-op.
               else
                 target_options.merge!(
@@ -225,12 +252,19 @@ module Scalient
                 )
               end
             else
-              target_options.merge!(
-                # The through association in the reverse direction.
-                through: create_inverse_through_name,
-                # The source association in the reverse direction.
-                source: create_inverse_source_name,
-              )
+              if (through_name = create_inverse_options[:create_inverse_through])
+                target_options.merge!(
+                  # The through association in the reverse direction.
+                  through: through_name,
+                )
+              end
+
+              if (source_name = create_inverse_options[:create_inverse_source])
+                target_options.merge!(
+                  # The source association in the reverse direction.
+                  source: source_name,
+                )
+              end
             end
 
             case create_inverse_multiplicity
@@ -250,10 +284,10 @@ module Scalient
 
         def normalize_create_inverse_options(create_inverse_options)
           create_inverse_scope = nil
-          create_inverse_through_name = nil
-          create_inverse_source_name = nil
           create_inverse_multiplicity = :many
           create_inverse_after_hook = -> {}
+
+          normalized_options = {}
 
           if create_inverse_options.is_a?(Hash)
             invalid_options = (create_inverse_options.keys - ALLOWED_CREATE_INVERSE_OPTIONS)
@@ -264,8 +298,6 @@ module Scalient
             end
 
             create_inverse_scope = create_inverse_options[:scope]
-            create_inverse_through_name = create_inverse_options[:through]&.to_s
-            create_inverse_source_name = create_inverse_options[:source]&.to_s
             create_inverse_multiplicity = (create_inverse_options[:multiplicity] || create_inverse_multiplicity).to_sym
             create_inverse_after_hook = create_inverse_options[:after] || create_inverse_after_hook
 
@@ -274,15 +306,21 @@ module Scalient
             else
               raise ArgumentError, "Invalid `create_inverse` multiplicity #{create_inverse_multiplicity.to_s.dump}"
             end
+
+            [:foreign_key, :through, :source].each do |key|
+              if create_inverse_options.include?(key)
+                normalized_options[:"create_inverse_#{key}"] = create_inverse_options[key]
+              end
+            end
           end
 
-          {
+          normalized_options.merge!(
             create_inverse_scope:,
-            create_inverse_through_name:,
-            create_inverse_source_name:,
             create_inverse_multiplicity:,
             create_inverse_after_hook:,
-          }
+          )
+
+          normalized_options
         end
 
         def add_explicit_inverse_of_option!(association_type, create_inverse_options, options)
