@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-#
-# Copyright 2013-2020 Scalient LLC
+# Copyright 2013-2024 Scalient LLC
 # All rights reserved.
 
 source "https://rubygems.org"

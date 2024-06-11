@@ -51,9 +51,11 @@ else
   include ActiveRecord::Tasks
 
   DatabaseTasks.env = "test"
-  DatabaseTasks.database_configuration = YAML.load((app_root + "config/database.yml").open("rb") { |f| f.read })
-  DatabaseTasks.db_dir = app_root + "db"
-  DatabaseTasks.migrations_paths = [app_root + "db/migrate"]
+  DatabaseTasks.database_configuration = YAML.load(
+    app_root.join("config/database.yml").open("rb", &:read), aliases: true,
+  )
+  DatabaseTasks.db_dir = app_root.join("db")
+  DatabaseTasks.migrations_paths = [app_root.join("db/migrate")]
   DatabaseTasks.root = app_root
 
   task :environment do
