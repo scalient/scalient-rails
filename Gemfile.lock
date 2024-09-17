@@ -270,6 +270,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
+  concurrent-ruby
   factory_bot_rails
   rspec-rails
   rubocop

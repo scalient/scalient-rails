@@ -8,6 +8,7 @@ source "https://rubygems.org"
 # Resolve dependencies from the gemspec for development convenience.
 gemspec
 
+gem "concurrent-ruby"
 gem "rubocop"
 gem "uppy-s3_multipart"
 
