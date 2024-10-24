@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright 2024 Scalient LLC
+# Copyright 2024 Roy Liu
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
 # use this file except in compliance with the License. You may obtain a copy of
@@ -16,6 +16,14 @@
 
 module Scalient
   module Daemonizable
+    extend ActiveSupport::Concern
+
+    included do
+      if !include?(::MonitorMixin)
+        send(:include, ::MonitorMixin)
+      end
+    end
+
     def _status
       @_status ||= :stopped
     end
@@ -24,16 +32,8 @@ module Scalient
       @_status = _status
     end
 
-    def _monitor
-      @_monitor ||= Monitor.new
-    end
-
     def _termination_promises
       @_termination_promises ||= []
-    end
-
-    def synchronized(&)
-      _monitor.synchronize(&)
     end
 
     def start_service
@@ -45,7 +45,7 @@ module Scalient
     end
 
     def on_service_stop(exception = nil, result = nil)
-      synchronized do
+      synchronize do
         if exception
           _termination_promises.each do |termination_promise|
             termination_promise.fail(exception)
@@ -63,7 +63,7 @@ module Scalient
     end
 
     def daemonize
-      synchronized do
+      synchronize do
         if _status == :stopped
           termination_promise = ::Concurrent::Promise.new
           _termination_promises.push(termination_promise)
@@ -80,7 +80,7 @@ module Scalient
     end
 
     def stop
-      synchronized do
+      synchronize do
         stop_service
       end
     end
