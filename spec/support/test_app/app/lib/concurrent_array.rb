@@ -9,9 +9,13 @@ class ConcurrentArray < Array
     end
   end
 
-  def s_shift(n_items, timeout = nil, policy: :partial_on_timeout)
-    synchronized_take(n_items, timeout, policy:) do |n_taken_items|
-      shift(n_taken_items)
+  def s_shift(n_items = nil, timeout = nil, policy: :partial_on_timeout)
+    synchronized_take(n_items, timeout, policy:) do |n_items_to_take|
+      if n_items_to_take
+        shift(n_items_to_take)
+      else
+        shift
+      end
     end
   end
 end

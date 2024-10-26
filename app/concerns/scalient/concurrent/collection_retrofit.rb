@@ -55,7 +55,8 @@ module Scalient
 
       # Attempts to take exactly `n_items` from the collection with a potential timeout. The given block performs the
       # actual taking (e.g., `shift` or `take`) operation.
-      def synchronized_take(n_items, timeout = nil, policy: :partial_on_timeout, &block)
+      def synchronized_take(n_items_argument = nil, timeout = nil, policy: :partial_on_timeout, &block)
+        n_items = n_items_argument || 1
         start_time = Time.now.to_f
 
         n_requested_items = case policy
@@ -70,7 +71,7 @@ module Scalient
         synchronize do
           if size >= n_items
             # If there happen to be `n_items`, just take and return.
-            return block.call(n_items)
+            return block.call(n_items_argument ? n_items : nil)
           elsif policy == :partial && size > 0
             # Take whatever is there and return.
             return block.call(size)
@@ -88,7 +89,7 @@ module Scalient
               taker_priority_queue.delete(vcv)
 
               # Take the `n_items` and return.
-              return block.call(n_items)
+              return block.call(n_items_argument ? n_items : nil)
             elsif policy == :partial && size > 0
               # Deregister the taker because we got some items.
               taker_priority_queue.delete(vcv)

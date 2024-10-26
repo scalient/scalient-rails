@@ -8,10 +8,12 @@ describe Scalient::Concurrent::CollectionRetrofit do
     shared_queue_2 = ConcurrentArray.new
     shared_queue_3 = ConcurrentArray.new
     shared_queue_4 = ConcurrentArray.new
+    shared_queue_5 = ConcurrentArray.new
     items_1 = nil
     items_2 = []
     items_3 = nil
     items_4 = nil
+    items_5 = []
 
     sender_1 = Thread.new do
       sleep(0.1)
@@ -75,6 +77,23 @@ describe Scalient::Concurrent::CollectionRetrofit do
       items_4 = shared_queue_4.s_shift(5, 0.55, policy: :all_or_nothing)
     end
 
+    sender_5 = Thread.new do
+      sleep(0.1)
+
+      (0...5).each do |i|
+        shared_queue_5.s_push(i)
+        sleep(0.1)
+      end
+    end
+
+    receiver_5 = Thread.new do
+      sleep(0.1)
+
+      while (item = shared_queue_5.s_shift(nil, 0.15))
+        items_5.push(item)
+      end
+    end
+
     sender_1.join
     receiver_1.join
     sender_2.join
@@ -83,10 +102,13 @@ describe Scalient::Concurrent::CollectionRetrofit do
     receiver_3.join
     sender_4.join
     receiver_4.join
+    sender_5.join
+    receiver_5.join
 
     expect(items_1).to eq([0, 1, 2])
     expect(items_2).to eq([0, 1, 2, 3, 4])
     expect(items_3).to eq(nil)
     expect(items_4).to eq([0, 1, 2, 3, 4])
+    expect(items_5).to eq([0, 1, 2, 3, 4])
   end
 end
