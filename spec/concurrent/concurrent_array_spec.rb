@@ -111,4 +111,27 @@ describe Scalient::Concurrent::CollectionRetrofit do
     expect(items_4).to eq([0, 1, 2, 3, 4])
     expect(items_5).to eq([0, 1, 2, 3, 4])
   end
+
+  it "cancels outstanding synchronized operations" do
+    shared_queue = ConcurrentArray.new
+
+    caught_error = nil
+
+    receiver = Thread.new do
+      begin
+        shared_queue.s_shift
+      rescue ::Concurrent::CancelledOperationError => e
+        caught_error = e
+      end
+    end
+
+    # Allow some time for the thread to enter condition variable `wait`.
+    sleep(0.1)
+
+    shared_queue.cancel(::Concurrent::CancelledOperationError)
+
+    receiver.join
+
+    expect(caught_error).to be_a(::Concurrent::CancelledOperationError)
+  end
 end

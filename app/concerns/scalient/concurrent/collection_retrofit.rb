@@ -24,6 +24,8 @@ module Scalient
         if !include?(::MonitorMixin)
           send(:include, ::MonitorMixin)
         end
+
+        attr_accessor :_cancellation_error_class
       end
 
       # A monitor-owned condition variable composed with a (sortable) value.
@@ -69,7 +71,10 @@ module Scalient
         end
 
         synchronize do
-          if size >= n_items
+          if (cancellation_error_class = _cancellation_error_class)
+            # Canceled? Bail.
+            raise cancellation_error_class
+          elsif size >= n_items
             # If there happen to be `n_items`, just take and return.
             return block.call(n_items_argument ? n_items : nil)
           elsif policy == :partial && size > 0
@@ -84,7 +89,13 @@ module Scalient
           loop do
             vcv.wait(timeout)
 
-            if size >= n_items
+            if (cancellation_error_class = _cancellation_error_class)
+              # Deregister the taker because the operation was cancelled.
+              taker_priority_queue.delete(vcv)
+
+              # Bail after doing the above bookkeeping.
+              raise cancellation_error_class
+            elsif size >= n_items
               # Deregister the taker because we got `n_items`.
               taker_priority_queue.delete(vcv)
 
@@ -137,6 +148,28 @@ module Scalient
           taker_priority_queue.pop
           remaining_size -= requested_size
           vcv.signal
+        end
+      end
+
+      # Cancel all outstanding synchronized operations.
+      def cancel(error_class)
+        if !error_class.try(:<, StandardError)
+          raise ArgumentError, "Please provide an error class"
+        end
+
+        synchronize do
+          while (vcv = taker_priority_queue.pop)
+            vcv.signal
+          end
+
+          self._cancellation_error_class = error_class
+        end
+      end
+
+      # Unset the synchronize operation cancellation status.
+      def uncancel
+        synchronize do
+          self._cancellation_error_class = nil
         end
       end
     end
