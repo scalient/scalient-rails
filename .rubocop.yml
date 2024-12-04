@@ -188,6 +188,10 @@ Style/TrailingCommaInArrayLiteral:
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: consistent_comma
 
+# Same reasoning as guard clauses: Don't obscure control flow by hiding the loop declaration after the statement.
+Style/WhileUntilModifier:
+  Enabled: false
+
 # Don't convert an array of symbols to `%w[]` because simplicity supersedes brevity.
 Style/WordArray:
   EnforcedStyle: brackets
