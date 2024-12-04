@@ -15,18 +15,24 @@ module ActiveRecord
         if !(@join_root_alias = relation.select_values.empty?) &&
             relation.select_values.first.to_s == "_brick_eager_load"
           relation.select_values.shift
-          used_cols = {}
+
+          used_cols = Set.new
           # Find and expand out all column names being used in select(...)
           new_select_values = relation.select_values.map(&:to_s).each_with_object([]) do |col, s|
-            unless col.include?(" ") # Pass it through if it's some expression (No chance for a simple column reference)
-              col = if (col_parts = col.split(".")).length == 1
-                [col]
+            if !col.include?(" ") # Pass it through if it's some expression (No chance for a simple column reference)
+              if (col_parts = col.split(".")).length == 1
+                table_name = relation.klass.table_name
+                col = [table_name, col]
               else
-                [col_parts[0..-2].join("."), col_parts.last]
+                table_name = col_parts[0..-2].join(".")
+                col = [table_name, col_parts.last]
               end
-              used_cols[col] = nil
+              used_cols.add(col)
+
+              # Don't bother adding to the user selects here: The column will get picked up in the eager load aliases.
+            else
+              s << col
             end
-            s << col
           end
           if new_select_values.present?
             relation.select_values = new_select_values
@@ -42,7 +48,19 @@ module ActiveRecord
             # keys.concat(join_part.base_klass.reflect_on_all_associations.select { |a| a.belongs_to? }.map(&:foreign_key))
 
             # Add foreign keys out to referenced tables that we belongs_to
-            join_part.children.each { |child| keys << child.reflection.foreign_key if child.reflection.belongs_to? }
+            # Note: @lorint's initial code checked for `child.reflection.belongs_to?`, but this seems to incorrectly
+            # omit `ActiveRecord::Reflection::ThroughReflection`s and their chaining.
+            join_part.children.each do |child|
+              traversed_child_reflection = child.reflection
+
+              while traversed_child_reflection.is_a?(Reflection::ThroughReflection)
+                traversed_child_reflection = traversed_child_reflection.through_reflection
+              end
+
+              if traversed_child_reflection.belongs_to?
+                keys << traversed_child_reflection.foreign_key
+              end
+            end
 
             # Add the foreign key that got us here -- "the train we rode in on" -- if we arrived from
             # a has_many or has_one:
@@ -51,16 +69,35 @@ module ActiveRecord
               keys << join_part.reflection.foreign_key
             end
             keys = keys.compact # In case we're using composite_primary_keys
-            j = 0
-            columns = join_part.column_names.each_with_object([]) do |column_name, s|
-              # Include columns chosen in select(...) as well as the PK and any relevant FKs
-              if used_cols.keys.find { |c| (c.length == 1 || c.first == join_alias) && c.last == column_name } ||
-                keys.find { |c| c == column_name }
-                s << Aliases::Column.new(column_name, "t#{i}_r#{j}")
+
+            selected_columns = []
+            all_columns = []
+            has_selected_column = false
+
+            join_part.column_names.each_with_index do |column_name, j|
+              column = Aliases::Column.new(column_name, "t#{i}_r#{j}")
+
+              is_column_selected = used_cols.include?([join_alias, column_name])
+              has_selected_column ||= is_column_selected
+
+              # The user selects straight up contain the join alias or column *or* foreign or primary keys are involved.
+              if is_column_selected || keys.find { |c| c == column_name }
+                selected_columns << column
               end
-              j += 1
+
+              all_columns << column
             end
-            Aliases::Table.new(join_part, columns)
+
+            Aliases::Table.new(
+              join_part,
+              if has_selected_column
+                # Are there columns affected by `select`? Use those.
+                selected_columns
+              else
+                # No columns affected by `select`? Fall back to projecting all columns.
+                all_columns
+              end,
+            )
           end)
         end
 
