@@ -29,10 +29,10 @@ module Scalient
           format.json do
             if successfully_sent?(resource)
               render json: response_json(
-                find_message(Devise.paranoid ? :send_paranoid_instructions : :send_instructions)
+                find_message(Devise.paranoid ? :send_paranoid_instructions : :send_instructions),
               )
             else
-              render json: response_json(error_message), status: :unprocessable_entity
+              render json: response_json(error_message("errors.messages.not_saved")), status: :unprocessable_entity
             end
           end
 
@@ -80,7 +80,7 @@ module Scalient
 
           respond_to do |format|
             format.json do
-              render json: response_json(error_message), status: :unprocessable_entity
+              render json: response_json(error_message("errors.messages.not_saved")), status: :unprocessable_entity
             end
 
             format.any(*navigational_formats) do
@@ -95,7 +95,7 @@ module Scalient
       private
 
       def response_json(message)
-        body = {id: 0, message: message}
+        body = {id: 0, message:}
 
         if resource.errors.size > 0
           body[:errors] = resource.errors.as_json
@@ -104,10 +104,12 @@ module Scalient
         body
       end
 
-      def error_message
-        find_message("errors.messages.not_saved",
-                     scope: "", count: resource.errors.count,
-                     resource: resource.class.model_name.human.downcase)
+      def error_message(i18n_path)
+        find_message(
+          i18n_path,
+          scope: "", count: resource.errors.count,
+          resource: resource.class.model_name.human.downcase,
+        )
       end
     end
   end
