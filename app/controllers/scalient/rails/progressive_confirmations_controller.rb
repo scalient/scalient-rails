@@ -104,8 +104,9 @@ module Scalient
 
         # The record could already have errors from failed retrieval.
         if resource.errors.empty?
-          updated_params = resource_params.permit(:password, :password_confirmation).except(:confirmation_token)
-          resource.update(updated_params)
+          resource.update(
+            resource_params.permit(:password, :password_confirmation).slice(:password, :password_confirmation),
+          )
         end
 
         yield resource if block_given?
