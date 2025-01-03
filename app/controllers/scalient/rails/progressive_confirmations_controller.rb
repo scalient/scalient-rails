@@ -102,9 +102,15 @@ module Scalient
           end
         end
 
-        updated_params = resource_params.permit(:password, :password_confirmation).except(:confirmation_token)
-        resource.update(updated_params)
+        # The record could already have errors from failed retrieval.
+        if resource.errors.empty?
+          updated_params = resource_params.permit(:password, :password_confirmation).except(:confirmation_token)
+          resource.update(updated_params)
+        end
 
+        yield resource if block_given?
+
+        # The record could have accumulated errors from saving.
         if resource.errors.empty?
           self.resource = resource_class.confirm_by_token(confirmation_token)
           set_flash_message!(:notice, :confirmed)
