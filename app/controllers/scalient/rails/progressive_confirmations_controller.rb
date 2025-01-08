@@ -102,6 +102,10 @@ module Scalient
           end
         end
 
+        # This is normally used to guard the logic inside of the block from running if already confirmed, but we invoke
+        # it here to add an `:already_confirmed` error to be detected by downstream code.
+        resource.send(:pending_any_confirmation) {}
+
         # The record could already have errors from failed retrieval.
         if resource.errors.empty?
           resource.update(
