@@ -106,18 +106,23 @@ module Scalient
         # it here to add an `:already_confirmed` error to be detected by downstream code.
         resource.send(:pending_any_confirmation) {}
 
-        # The record could already have errors from failed retrieval.
+        # The record could have accumulated errors at this point.
         if resource.errors.empty?
           resource.update(
             resource_params.permit(:password, :password_confirmation).slice(:password, :password_confirmation),
           )
         end
 
-        yield resource if block_given?
-
-        # The record could have accumulated errors from saving.
+        # The record could have accumulated errors at this point.
         if resource.errors.empty?
           self.resource = resource_class.confirm_by_token(confirmation_token)
+        end
+
+        yield resource if block_given?
+
+        # The record could have accumulated errors from retrieval, setting the password, or confirming the token; or it
+        # could already be confirmed.
+        if resource.errors.empty?
           set_flash_message!(:notice, :confirmed)
           sign_in(resource_name, resource)
 
