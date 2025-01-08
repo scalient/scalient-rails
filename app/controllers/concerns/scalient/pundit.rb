@@ -49,8 +49,18 @@ module Scalient
           {}
         end
 
-        redirect_to referrer && !is_self_redirect_loop && !is_sign_in_redirect_loop ? referrer : root_path,
-                    options
+        respond_to do |format|
+          format.json do
+            render json: {message: "You are not authorized to perform this action."}, status: :unauthorized
+          end
+
+          format.html do
+            redirect_to referrer && !is_self_redirect_loop && !is_sign_in_redirect_loop ? referrer : root_path,
+                        options
+          end
+
+          format.all { head :no_content }
+        end
       end
     end
   end
