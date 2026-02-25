@@ -12,13 +12,19 @@ module ActiveRecord
       # entry in your .select().
       # More information:  https://discuss.rubyonrails.org/t/includes-and-select-for-joined-data/81640
       def apply_column_aliases(relation)
-        if !(@join_root_alias = relation.select_values.empty?) &&
-            relation.select_values.first.to_s == "_brick_eager_load"
+        @join_root_alias = relation.select_values.empty?
+
+        if !@join_root_alias && relation.select_values.first.to_s == "_brick_eager_load"
+          # Kind of fragile, but `#select_values` is reset to an original, external reference before this method is
+          # called. Therefore, we `#dup` it to avoid mutating the contents of the original array, thus ensuring
+          # idempotency with multiple invocations of query generation.
+          relation.select_values = relation.select_values.dup
+
           relation.select_values.shift
 
           used_cols = Set.new
           # Find and expand out all column names being used in select(...)
-          new_select_values = relation.select_values.map(&:to_s).each_with_object([]) do |col, s|
+          rewritten_select_values = relation.select_values.map(&:to_s).each_with_object([]) do |col, s|
             if !col.include?(" ") # Pass it through if it's some expression (No chance for a simple column reference)
               if (col_parts = col.split(".")).length == 1
                 table_name = relation.klass.table_name
@@ -34,14 +40,26 @@ module ActiveRecord
               s << col
             end
           end
-          if new_select_values.present?
-            relation.select_values = new_select_values
-          else
-            relation.select_values.clear
-          end
+
+          relation.select_values = rewritten_select_values
 
           @aliases ||= Aliases.new(join_root.each_with_index.map do |join_part, i|
-            join_alias = join_part.table&.table_alias || join_part.table_name
+            case join_part
+            when ActiveRecord::Associations::JoinDependency::JoinBase
+              join_alias = join_part.table&.table_alias || join_part.table_name
+              speculative_join_alias = nil
+            when ActiveRecord::Associations::JoinDependency::JoinAssociation
+              join_alias = join_part.table_name
+              # TODO: This is the potential alias *after* the `Aliases` class does its work, in case a table is being
+              # used multiple times by different reflections. With a more proper design, we wouldn't be guessing what
+              # Rails will be renaming tables to avoid collisions. Rails convention seems to be a concatenation of
+              # `#plural_name` with the base model's `#table_name`.
+              speculative_join_alias = "#{join_part.reflection.name}_#{relation.model.table_name}"
+            else
+              # Are there any other types?
+              raise "Control should never reach here"
+            end
+
             keys = [join_part.base_klass.primary_key] # Always include the primary key
 
             # # %%% Optional to include all foreign keys:
@@ -77,7 +95,8 @@ module ActiveRecord
             join_part.column_names.each_with_index do |column_name, j|
               column = Aliases::Column.new(column_name, "t#{i}_r#{j}")
 
-              is_column_selected = used_cols.include?([join_alias, column_name])
+              is_column_selected = used_cols.include?([join_alias, column_name]) ||
+                                   used_cols.include?([speculative_join_alias, column_name])
               has_selected_column ||= is_column_selected
 
               # The user selects straight up contain the join alias or column *or* foreign or primary keys are involved.

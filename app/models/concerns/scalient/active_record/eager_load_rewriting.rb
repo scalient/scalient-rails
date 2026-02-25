@@ -97,9 +97,21 @@ module Scalient
           else
             if column_name
               rewritten_selects.push(if parent_reflection_name
+                inflected_table_name = reflections[parent_reflection_name].source_reflection.table_name
+
+                # TODO: We use a best-attempt heuristic to determine if this reflection will be aliased, by checking if
+                # the reflection name is just the table name (as is the case for reflections that ahere to configuration
+                # by convention). If it isn't, Rails will synthesize a disambiguating table alias that concatenates the
+                # reflection name with the base model's table name.
+                aliased_table_name = if parent_reflection_name != inflected_table_name
+                  "#{parent_reflection_name}_#{table_name}"
+                else
+                  inflected_table_name
+                end
+
                 # We actually use the parent reflection to look up its source reflection, whose name is being used in
                 # the query.
-                "#{reflections[parent_reflection_name].source_reflection.name}.#{column_name}"
+                "#{aliased_table_name}.#{column_name}"
               else
                 column_name
               end)
