@@ -75,7 +75,7 @@ module Scalient
       private
 
       def response_json(message)
-        {id: 0, message: message, resource_name => resource.as_json}
+        {id: 0, message: message, resource_name => ActiveModelSerializers::SerializableResource.new(resource).as_json}
       end
     end
   end
