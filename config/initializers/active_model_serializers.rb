@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-#
 # Copyright 2019-2021 The Affective Computing Company
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -16,7 +15,8 @@
 # the License.
 
 ActiveModelSerializers.config.tap do |config|
-  config.adapter = :json_api
+  # Don't force users of this gem to also use JSON:API.
+  # config.adapter = :json_api
   config.jsonapi_use_foreign_key_on_belongs_to_relationship = true
 
   # This is very similar to `BY_RESOURCE_NAMESPACE`, except it also takes into account the explicitly provided
