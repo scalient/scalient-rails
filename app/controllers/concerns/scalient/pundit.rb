@@ -51,7 +51,7 @@ module Scalient
 
         respond_to do |format|
           format.json do
-            render json: {message: "You are not authorized to perform this action."}, status: :unauthorized
+            render json: {message: "You are not authorized to perform this action."}, status: :forbidden
           end
 
           format.html do
