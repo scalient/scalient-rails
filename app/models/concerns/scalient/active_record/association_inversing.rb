@@ -43,7 +43,7 @@ module Scalient
 
             reflections = super
 
-            new_reflection = reflections[association_name.to_s]
+            new_reflection = reflect_on_association(association_name)
 
             class_name = options[:class_name] || new_reflection.name.to_s.camelize
             target_class = class_name.safe_constantize
@@ -103,7 +103,7 @@ module Scalient
 
             reflections = super
 
-            create_has_inverse(reflections[association_name.to_s], create_inverse_options, **options)
+            create_has_inverse(reflect_on_association(association_name), create_inverse_options, **options)
 
             reflections
           end
@@ -120,7 +120,7 @@ module Scalient
 
             reflections = super
 
-            create_has_inverse(reflections[association_name.to_s], create_inverse_options, **options)
+            create_has_inverse(reflect_on_association(association_name), create_inverse_options, **options)
 
             reflections
           end
